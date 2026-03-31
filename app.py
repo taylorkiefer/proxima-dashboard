@@ -887,7 +887,7 @@ with tab2:
 
         # Notes
         st.markdown(f"""
-        <div style="font-size:13px; color:#555; line-height:1.7;
+        <div style="font-size:13px; color:#888; line-height:1.7;
                     border-top:1px solid #111; padding-top:12px;
                     margin-bottom:24px;">
             {p["Notes"]}
