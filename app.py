@@ -208,7 +208,7 @@ st.markdown(f"""
             align-items:flex-end; padding: 8px 0 36px 0;
             border-bottom: 1px solid #111; margin-bottom: 32px;">
     <div>
-        <div style="font-size:11px; color:#333; letter-spacing:2.5px;
+        <div style="font-size:11px; color:#666; letter-spacing:2.5px;
                     text-transform:uppercase; margin-bottom:10px;
                     font-weight:500;">
             PROXIMA · INTERNAL · CONFIDENTIAL
@@ -217,14 +217,14 @@ st.markdown(f"""
                     letter-spacing:-0.5px; line-height:1.1;">
             Strategic Intelligence
         </div>
-        <div style="font-size:14px; color:#444; margin-top:8px;
+        <div style="font-size:14px; color:#777; margin-top:8px;
                     font-weight:400;">
             External landscape &nbsp;·&nbsp; Partnership portfolio
             &nbsp;·&nbsp; Resource allocation
         </div>
     </div>
     <div style="text-align:right;">
-        <div style="font-size:11px; color:#333; text-transform:uppercase;
+        <div style="font-size:11px; color:#666; text-transform:uppercase;
                     letter-spacing:1px; margin-bottom:4px;">
             LAST REFRESHED
         </div>
@@ -326,7 +326,7 @@ with tab1:
             filtered = filtered[mask]
 
         st.markdown(f"""
-        <div style="font-size:12px; color:#333; margin-bottom:10px;">
+        <div style="font-size:12px; color:#666; margin-bottom:10px;">
             Showing {len(filtered)} of {len(trials_df)} trials
         </div>""", unsafe_allow_html=True)
 
@@ -411,7 +411,7 @@ with tab1:
 
     else:
         st.markdown("""
-        <div class="proxima-card" style="color:#333; font-size:13px;">
+        <div class="proxima-card" style="color:#666; font-size:13px;">
             Could not load trial data. Check your internet connection.
         </div>""", unsafe_allow_html=True)
 
@@ -545,7 +545,7 @@ with tab1:
                 <div>
                     <span style="font-size:16px; font-weight:700;
                                  color:#fff;">{row["Company"]}</span>
-                    <span style="font-size:12px; color:#444;
+                    <span style="font-size:12px; color:#777;
                                  margin-left:10px;">{row["Modality"]}</span>
                 </div>
                 <div style="display:flex; gap:6px; flex-wrap:wrap;
@@ -564,7 +564,7 @@ with tab1:
             </div>
             <div style="display:flex; gap:32px; flex-wrap:wrap;">
                 <div>
-                    <div style="font-size:10px; color:#333;
+                    <div style="font-size:10px; color:#666;
                                 text-transform:uppercase;
                                 letter-spacing:1px;">INDICATION</div>
                     <div style="font-size:13px; color:#888; margin-top:3px;">
@@ -572,7 +572,7 @@ with tab1:
                     </div>
                 </div>
                 <div>
-                    <div style="font-size:10px; color:#333;
+                    <div style="font-size:10px; color:#666;
                                 text-transform:uppercase;
                                 letter-spacing:1px;">FUNDING</div>
                     <div style="font-size:13px; color:#888; margin-top:3px;">
@@ -580,7 +580,7 @@ with tab1:
                     </div>
                 </div>
                 <div>
-                    <div style="font-size:10px; color:#333;
+                    <div style="font-size:10px; color:#666;
                                 text-transform:uppercase;
                                 letter-spacing:1px;">COMP. PLATFORM</div>
                     <div style="font-size:13px; color:#888; margin-top:3px;">
@@ -748,14 +748,14 @@ with tab2:
                     <span class="badge {b_cls}">{label}</span>
                     <span style="font-size:14px; font-weight:600;
                                  color:#fff;">{p["Partner"]}</span>
-                    <span style="font-size:13px; color:#444;">
+                    <span style="font-size:13px; color:#777;">
                         &#8594; {p["Next Milestone"]}
                     </span>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:13px; color:{color};
                                 font-weight:600;">{p["Milestone Date"]}</div>
-                    <div style="font-size:11px; color:#333;">
+                    <div style="font-size:11px; color:#666;">
                         ~{d} days
                     </div>
                 </div>
@@ -784,7 +784,7 @@ with tab2:
                                 color:#fff; margin-bottom:3px;">
                         {p["Partner"]}
                     </div>
-                    <div style="font-size:12px; color:#444;">
+                    <div style="font-size:12px; color:#777;">
                         {p["Focus"]}
                     </div>
                 </div>
@@ -801,7 +801,7 @@ with tab2:
         with col1:
             st.markdown(f"""
             <div style="padding:0 0 12px 0;">
-                <div style="font-size:10px; color:#333; text-transform:uppercase;
+                <div style="font-size:10px; color:#666; text-transform:uppercase;
                             letter-spacing:1px;">INDICATION</div>
                 <div style="font-size:13px; color:#888; margin-top:3px;">
                     {p["Indication"]}
@@ -810,7 +810,7 @@ with tab2:
         with col2:
             st.markdown(f"""
             <div style="padding:0 0 12px 0;">
-                <div style="font-size:10px; color:#333; text-transform:uppercase;
+                <div style="font-size:10px; color:#666; text-transform:uppercase;
                             letter-spacing:1px;">DEAL VALUE</div>
                 <div style="font-size:13px; color:#888; margin-top:3px;">
                     {p["Deal Value"]}
@@ -819,7 +819,7 @@ with tab2:
         with col3:
             st.markdown(f"""
             <div style="padding:0 0 12px 0;">
-                <div style="font-size:10px; color:#333; text-transform:uppercase;
+                <div style="font-size:10px; color:#666; text-transform:uppercase;
                             letter-spacing:1px;">PROGRAMS</div>
                 <div style="font-size:13px; color:#888; margin-top:3px;">
                     {p["Programs"]} active
@@ -828,7 +828,7 @@ with tab2:
         with col4:
             st.markdown(f"""
             <div style="padding:0 0 12px 0;">
-                <div style="font-size:10px; color:#333; text-transform:uppercase;
+                <div style="font-size:10px; color:#666; text-transform:uppercase;
                             letter-spacing:1px;">MOST ADVANCED</div>
                 <div style="font-size:13px; color:#888; margin-top:3px;">
                     {p["Most Advanced"]}
@@ -843,7 +843,7 @@ with tab2:
             <div style="display:flex; justify-content:space-between;
                         align-items:center;">
                 <div>
-                    <div style="font-size:10px; color:#333;
+                    <div style="font-size:10px; color:#666;
                                 text-transform:uppercase;
                                 letter-spacing:1px;">NEXT MILESTONE</div>
                     <div style="font-size:15px; color:#fff;
@@ -856,7 +856,7 @@ with tab2:
                                 font-weight:600;">
                         {p["Milestone Date"]}
                     </div>
-                    <div style="font-size:11px; color:#333; margin-top:2px;">
+                    <div style="font-size:11px; color:#666; margin-top:2px;">
                         ~{d} days away
                     </div>
                 </div>
@@ -869,18 +869,18 @@ with tab2:
         with ob_col1:
             st.markdown(f"""
             <div style="padding:0 0 12px 0;">
-                <div style="font-size:10px; color:#333; text-transform:uppercase;
+                <div style="font-size:10px; color:#888; text-transform:uppercase;
                             letter-spacing:1px;">DATA OBLIGATIONS</div>
-                <div style="font-size:13px; color:#666; margin-top:3px;">
+                <div style="font-size:13px; color:#888; margin-top:3px;">
                     {p["Data Obligations"]}
                 </div>
             </div>""", unsafe_allow_html=True)
         with ob_col2:
             st.markdown(f"""
             <div style="padding:0 0 12px 0;">
-                <div style="font-size:10px; color:#333; text-transform:uppercase;
+                <div style="font-size:10px; color:#888; text-transform:uppercase;
                             letter-spacing:1px;">JOINT STEERING</div>
-                <div style="font-size:13px; color:#666; margin-top:3px;">
+                <div style="font-size:13px; color:#888; margin-top:3px;">
                     {p["Joint Steering"]}
                 </div>
             </div>""", unsafe_allow_html=True)
@@ -1274,7 +1274,7 @@ with tab3:
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
             <div>
-                <div style="font-size:10px; color:#333; text-transform:uppercase;
+                <div style="font-size:10px; color:#666; text-transform:uppercase;
                             letter-spacing:1.5px; margin-bottom:12px;
                             font-weight:600;">
                     PARTNERSHIP OPS
@@ -1288,7 +1288,7 @@ with tab3:
                 </div>
             </div>
             <div>
-                <div style="font-size:10px; color:#333; text-transform:uppercase;
+                <div style="font-size:10px; color:#666; text-transform:uppercase;
                             letter-spacing:1.5px; margin-bottom:12px;
                             font-weight:600;">
                     INTELLIGENCE & PLANNING
