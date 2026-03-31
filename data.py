@@ -364,3 +364,23 @@ def fetch_all_literature() -> pd.DataFrame:
     df = df.sort_values("date", ascending=False).reset_index(drop=True)
 
     return df
+
+@st.cache_data(ttl=60)
+def debug_europepmc(query: str) -> dict:
+    """Temporary debug function to see raw API response."""
+    try:
+        url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
+        params = {
+            "query": f"{query} SOURCE:PPR",
+            "format": "json",
+            "pageSize": 5,
+            "sort": "P_PDATE_D desc",
+            "resultType": "core",
+        }
+        resp = requests.get(url, params=params, timeout=10)
+        return {
+            "status": resp.status_code,
+            "data": resp.json()
+        }
+    except Exception as e:
+        return {"error": str(e)}
