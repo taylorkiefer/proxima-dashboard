@@ -228,7 +228,7 @@ st.markdown(f"""
                     letter-spacing:1px; margin-bottom:4px;">
             LAST REFRESHED
         </div>
-        <div style="font-size:13px; color:#555; font-weight:500;">
+        <div style="font-size:13px; color:#888; font-weight:500;">
             {now}
         </div>
         <div style="margin-top:10px;">
@@ -261,7 +261,7 @@ with tab1:
                     margin-bottom:6px;">
             What's moving in the ProMod space
         </div>
-        <div style="font-size:13px; color:#555; line-height:1.7;">
+        <div style="font-size:13px; color:#888; line-height:1.7;">
             Live clinical trial data from ClinicalTrials.gov, mapped against
             the competitive landscape. Framed around the decisions Proxima
             needs to make — not just what exists, but what it means.
@@ -1124,7 +1124,7 @@ with tab3:
 
     st.markdown("""
     <div class="proxima-card" style="margin-bottom:16px;">
-        <div style="font-size:13px; color:#555; line-height:1.7;">
+        <div style="font-size:13px; color:#888; line-height:1.7;">
             <b style="color:#aaa;">X-axis</b> = competitive pressure externally.
             <b style="color:#aaa;">Y-axis</b> = FTEs allocated internally.
             <b style="color:#aaa;">Bubble size</b> = NeoLink data coverage.
@@ -1215,7 +1215,7 @@ with tab3:
                 <div>
                     <div style="font-size:14px; font-weight:600; color:#fff;
                                 margin-bottom:6px;">{f['title']}</div>
-                    <div style="font-size:13px; color:#555;
+                    <div style="font-size:13px; color:#888;
                                 line-height:1.7;">{f['body']}</div>
                 </div>
             </div>
@@ -1237,7 +1237,7 @@ with tab3:
                 unsafe_allow_html=True)
     st.markdown("""
     <div class="proxima-card">
-        <div style="font-size:13px; color:#555; line-height:1.7;">
+        <div style="font-size:13px; color:#888; line-height:1.7;">
             Generate a live strategic assessment of resource allocation —
             whether effort is going where the opportunity is, and what
             to bring to leadership.
@@ -1279,7 +1279,7 @@ with tab3:
                             font-weight:600;">
                     PARTNERSHIP OPS
                 </div>
-                <div style="font-size:13px; color:#555; line-height:2;">
+                <div style="font-size:13px; color:#888; line-height:2;">
                     → Milestone alert system with Slack / email triggers<br>
                     → Data obligation tracker with delivery confirmations<br>
                     → JSC prep templates auto-populated from program data<br>
@@ -1293,7 +1293,7 @@ with tab3:
                             font-weight:600;">
                     INTELLIGENCE & PLANNING
                 </div>
-                <div style="font-size:13px; color:#555; line-height:2;">
+                <div style="font-size:13px; color:#888; line-height:2;">
                     → Auto-refreshing signals from PubMed + bioRxiv<br>
                     → Headcount planning tied to program stage gates<br>
                     → CRO / CMO vendor tracker for IND-readiness<br>
