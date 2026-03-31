@@ -774,6 +774,7 @@ with tab2:
         d = p["Days Until"]
         ms_color = "#cf4f4f" if d<=60 else "#d4a017" if d<=120 else "#3ea8cf"
 
+        # Header
         st.markdown(f"""
         <div class="proxima-card">
             <div style="display:flex; justify-content:space-between;
@@ -792,96 +793,107 @@ with tab2:
                     <span class="badge {risk_cls}">{risk_label}</span>
                 </div>
             </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-            <div style="display:grid; grid-template-columns:repeat(4,1fr);
-                        gap:16px; margin-bottom:16px;">
+        # Stats row
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.markdown(f"""
+            <div style="padding:0 0 12px 0;">
+                <div style="font-size:10px; color:#333; text-transform:uppercase;
+                            letter-spacing:1px;">INDICATION</div>
+                <div style="font-size:13px; color:#888; margin-top:3px;">
+                    {p["Indication"]}
+                </div>
+            </div>""", unsafe_allow_html=True)
+        with col2:
+            st.markdown(f"""
+            <div style="padding:0 0 12px 0;">
+                <div style="font-size:10px; color:#333; text-transform:uppercase;
+                            letter-spacing:1px;">DEAL VALUE</div>
+                <div style="font-size:13px; color:#888; margin-top:3px;">
+                    {p["Deal Value"]}
+                </div>
+            </div>""", unsafe_allow_html=True)
+        with col3:
+            st.markdown(f"""
+            <div style="padding:0 0 12px 0;">
+                <div style="font-size:10px; color:#333; text-transform:uppercase;
+                            letter-spacing:1px;">PROGRAMS</div>
+                <div style="font-size:13px; color:#888; margin-top:3px;">
+                    {p["Programs"]} active
+                </div>
+            </div>""", unsafe_allow_html=True)
+        with col4:
+            st.markdown(f"""
+            <div style="padding:0 0 12px 0;">
+                <div style="font-size:10px; color:#333; text-transform:uppercase;
+                            letter-spacing:1px;">MOST ADVANCED</div>
+                <div style="font-size:13px; color:#888; margin-top:3px;">
+                    {p["Most Advanced"]}
+                </div>
+            </div>""", unsafe_allow_html=True)
+
+        # Milestone box
+        st.markdown(f"""
+        <div style="background:#040404; border:1px solid #111;
+                    border-radius:8px; padding:14px 18px;
+                    margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between;
+                        align-items:center;">
                 <div>
                     <div style="font-size:10px; color:#333;
                                 text-transform:uppercase;
-                                letter-spacing:1px;">INDICATION</div>
-                    <div style="font-size:13px; color:#888; margin-top:3px;">
-                        {p["Indication"]}
+                                letter-spacing:1px;">NEXT MILESTONE</div>
+                    <div style="font-size:15px; color:#fff;
+                                font-weight:600; margin-top:4px;">
+                        {p["Next Milestone"]}
                     </div>
                 </div>
-                <div>
-                    <div style="font-size:10px; color:#333;
-                                text-transform:uppercase;
-                                letter-spacing:1px;">DEAL VALUE</div>
-                    <div style="font-size:13px; color:#888; margin-top:3px;">
-                        {p["Deal Value"]}
+                <div style="text-align:right;">
+                    <div style="font-size:14px; color:{ms_color};
+                                font-weight:600;">
+                        {p["Milestone Date"]}
                     </div>
-                </div>
-                <div>
-                    <div style="font-size:10px; color:#333;
-                                text-transform:uppercase;
-                                letter-spacing:1px;">PROGRAMS</div>
-                    <div style="font-size:13px; color:#888; margin-top:3px;">
-                        {p["Programs"]} active
-                    </div>
-                </div>
-                <div>
-                    <div style="font-size:10px; color:#333;
-                                text-transform:uppercase;
-                                letter-spacing:1px;">MOST ADVANCED</div>
-                    <div style="font-size:13px; color:#888; margin-top:3px;">
-                        {p["Most Advanced"]}
+                    <div style="font-size:11px; color:#333; margin-top:2px;">
+                        ~{d} days away
                     </div>
                 </div>
             </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-            <div style="background:#040404; border:1px solid #111;
-                        border-radius:8px; padding:14px 18px;
-                        margin-bottom:14px;">
-                <div style="display:flex; justify-content:space-between;
-                            align-items:center;">
-                    <div>
-                        <div style="font-size:10px; color:#333;
-                                    text-transform:uppercase;
-                                    letter-spacing:1px;">NEXT MILESTONE</div>
-                        <div style="font-size:15px; color:#fff;
-                                    font-weight:600; margin-top:4px;">
-                            {p["Next Milestone"]}
-                        </div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:14px; color:{ms_color};
-                                    font-weight:600;">
-                            {p["Milestone Date"]}
-                        </div>
-                        <div style="font-size:11px; color:#333;
-                                    margin-top:2px;">
-                            ~{d} days away
-                        </div>
-                    </div>
+        # Obligations row
+        ob_col1, ob_col2 = st.columns(2)
+        with ob_col1:
+            st.markdown(f"""
+            <div style="padding:0 0 12px 0;">
+                <div style="font-size:10px; color:#333; text-transform:uppercase;
+                            letter-spacing:1px;">DATA OBLIGATIONS</div>
+                <div style="font-size:13px; color:#666; margin-top:3px;">
+                    {p["Data Obligations"]}
                 </div>
-            </div>
-
-            <div style="display:grid; grid-template-columns:1fr 1fr;
-                        gap:16px; margin-bottom:14px;">
-                <div>
-                    <div style="font-size:10px; color:#333;
-                                text-transform:uppercase;
-                                letter-spacing:1px;">DATA OBLIGATIONS</div>
-                    <div style="font-size:13px; color:#666; margin-top:3px;">
-                        {p["Data Obligations"]}
-                    </div>
+            </div>""", unsafe_allow_html=True)
+        with ob_col2:
+            st.markdown(f"""
+            <div style="padding:0 0 12px 0;">
+                <div style="font-size:10px; color:#333; text-transform:uppercase;
+                            letter-spacing:1px;">JOINT STEERING</div>
+                <div style="font-size:13px; color:#666; margin-top:3px;">
+                    {p["Joint Steering"]}
                 </div>
-                <div>
-                    <div style="font-size:10px; color:#333;
-                                text-transform:uppercase;
-                                letter-spacing:1px;">JOINT STEERING</div>
-                    <div style="font-size:13px; color:#666; margin-top:3px;">
-                        {p["Joint Steering"]}
-                    </div>
-                </div>
-            </div>
+            </div>""", unsafe_allow_html=True)
 
-            <div style="font-size:13px; color:#555; line-height:1.7;
-                        border-top:1px solid #111; padding-top:12px;">
-                {p["Notes"]}
-            </div>
-        </div>""", unsafe_allow_html=True)
-
+        # Notes
+        st.markdown(f"""
+        <div style="font-size:13px; color:#555; line-height:1.7;
+                    border-top:1px solid #111; padding-top:12px;
+                    margin-bottom:24px;">
+            {p["Notes"]}
+        </div>
+        """, unsafe_allow_html=True)
+        
     # ── AI Synthesis ───────────────────────────────────────────────────────────
     st.markdown("<div class='section-label'>AI Strategic Synthesis</div>",
                 unsafe_allow_html=True)
