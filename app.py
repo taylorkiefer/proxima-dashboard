@@ -4,12 +4,8 @@ from data import (
     fetch_recent_trials,
     fetch_all_literature,
     LITERATURE_QUERIES,
+    debug_europepmc,
 )
-# TEMPORARY DEBUG — remove after testing
-    from data import debug_europepmc
-    debug_result = debug_europepmc("molecular glue degrader")
-    st.json(debug_result)
-
 from synthesis import (
     synthesize_external_landscape,
     synthesize_partnership_portfolio,
@@ -32,7 +28,6 @@ st.set_page_config(
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-    /* ── Reset & Base ── */
     * { font-family: 'Inter', sans-serif !important; }
     .stApp {
         background-color: #000000;
@@ -44,8 +39,6 @@ st.markdown("""
         padding: 2rem 3rem 4rem 3rem;
         max-width: 1400px;
     }
-
-    /* ── Tabs ── */
     .stTabs [data-baseweb="tab-list"] {
         background: #0a0a0a;
         border: 1px solid #1a1a1a;
@@ -69,11 +62,6 @@ st.markdown("""
         color: #ffffff;
         border: 1px solid #2a2a2a;
     }
-    .stTabs [data-baseweb="tab"]:hover {
-        color: #aaa;
-    }
-
-    /* ── Buttons ── */
     .stButton > button {
         background: #0a0a0a;
         color: #aaaaaa;
@@ -83,15 +71,12 @@ st.markdown("""
         font-size: 13px;
         font-weight: 500;
         transition: all 0.2s;
-        width: auto;
     }
     .stButton > button:hover {
         background: #141414;
         border-color: #444;
         color: #ffffff;
     }
-
-    /* ── Inputs ── */
     .stSelectbox > div > div,
     .stTextInput > div > div > input {
         background: #0a0a0a !important;
@@ -107,45 +92,19 @@ st.markdown("""
         text-transform: uppercase !important;
         letter-spacing: 0.8px !important;
     }
-
-    /* ── Dataframe ── */
     .stDataFrame {
         border: 1px solid #1a1a1a !important;
         border-radius: 10px !important;
         overflow: hidden;
     }
-    .stDataFrame thead th {
-        background: #0d0d0d !important;
-        color: #555 !important;
-        font-size: 11px !important;
-        font-weight: 600 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.8px !important;
-        border-bottom: 1px solid #1a1a1a !important;
-    }
-    .stDataFrame tbody td {
-        color: #ccc !important;
-        font-size: 13px !important;
-        border-color: #111 !important;
-    }
-    .stDataFrame tbody tr:hover td {
-        background: #0d0d0d !important;
-    }
-
-    /* ── Spinner ── */
     .stSpinner > div { border-top-color: #3ea8cf !important; }
-
-    /* ── Custom components ── */
     .proxima-card {
         background: #080808;
         border: 1px solid #1a1a1a;
         border-radius: 12px;
         padding: 24px;
         margin-bottom: 12px;
-        transition: border-color 0.2s;
     }
-    .proxima-card:hover { border-color: #2a2a2a; }
-
     .metric-card {
         background: #080808;
         border: 1px solid #1a1a1a;
@@ -162,12 +121,11 @@ st.markdown("""
     }
     .metric-label {
         font-size: 12px;
-        color: #444;
+        color: #555;
         text-transform: uppercase;
         letter-spacing: 0.8px;
         font-weight: 500;
     }
-
     .section-label {
         font-size: 11px;
         font-weight: 600;
@@ -178,7 +136,6 @@ st.markdown("""
         padding-bottom: 8px;
         border-bottom: 1px solid #111;
     }
-
     .badge {
         display: inline-block;
         padding: 3px 10px;
@@ -192,7 +149,6 @@ st.markdown("""
     .badge-blue   { background:#051525; color:#3ea8cf; border:1px solid #0d2d45; }
     .badge-red    { background:#1a0505; color:#cf4f4f; border:1px solid #330d0d; }
     .badge-purple { background:#110515; color:#a855f7; border:1px solid #2a0d3a; }
-
     .insight-card {
         background: #050505;
         border-radius: 10px;
@@ -201,12 +157,6 @@ st.markdown("""
         line-height: 1.8;
         font-size: 14px;
         color: #bbb;
-    }
-
-    .divider {
-        border: none;
-        border-top: 1px solid #111;
-        margin: 32px 0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -218,7 +168,7 @@ st.markdown(f"""
             align-items:flex-end; padding: 8px 0 36px 0;
             border-bottom: 1px solid #111; margin-bottom: 32px;">
     <div>
-        <div style="font-size:11px; color:#666; letter-spacing:2.5px;
+        <div style="font-size:11px; color:#333; letter-spacing:2.5px;
                     text-transform:uppercase; margin-bottom:10px;
                     font-weight:500;">
             PROXIMA · INTERNAL · CONFIDENTIAL
@@ -227,20 +177,17 @@ st.markdown(f"""
                     letter-spacing:-0.5px; line-height:1.1;">
             Strategic Intelligence
         </div>
-        <div style="font-size:14px; color:#777; margin-top:8px;
-                    font-weight:400;">
+        <div style="font-size:14px; color:#444; margin-top:8px;">
             External landscape &nbsp;·&nbsp; Partnership portfolio
             &nbsp;·&nbsp; Resource allocation
         </div>
     </div>
     <div style="text-align:right;">
-        <div style="font-size:11px; color:#666; text-transform:uppercase;
+        <div style="font-size:11px; color:#333; text-transform:uppercase;
                     letter-spacing:1px; margin-bottom:4px;">
             LAST REFRESHED
         </div>
-        <div style="font-size:13px; color:#888; font-weight:500;">
-            {now}
-        </div>
+        <div style="font-size:13px; color:#555; font-weight:500;">{now}</div>
         <div style="margin-top:10px;">
             <span class="badge badge-green">● Live data</span>
         </div>
@@ -260,18 +207,18 @@ tab1, tab2, tab3 = st.tabs([
 # ══════════════════════════════════════════════════════════════════════════════
 with tab1:
 
+    # TEMPORARY DEBUG
+    debug_result = debug_europepmc("molecular glue degrader")
+    st.json(debug_result)
+
     st.markdown("""
     <div class="proxima-card" style="border-left: 2px solid #1e3a4a;">
         <div style="font-size:13px; color:#3ea8cf; font-weight:600;
                     text-transform:uppercase; letter-spacing:1px;
-                    margin-bottom:8px;">
-            EXTERNAL LANDSCAPE
-        </div>
+                    margin-bottom:8px;">EXTERNAL LANDSCAPE</div>
         <div style="font-size:15px; color:#ffffff; font-weight:500;
-                    margin-bottom:6px;">
-            What's moving in the ProMod space
-        </div>
-        <div style="font-size:13px; color:#888; line-height:1.7;">
+                    margin-bottom:6px;">What's moving in the ProMod space</div>
+        <div style="font-size:13px; color:#555; line-height:1.7;">
             Live clinical trial data from ClinicalTrials.gov, mapped against
             the competitive landscape. Framed around the decisions Proxima
             needs to make — not just what exists, but what it means.
@@ -279,7 +226,7 @@ with tab1:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Load data ──────────────────────────────────────────────────────────────
+    # ── Load trial data ────────────────────────────────────────────────────────
     with st.spinner("Pulling live data from ClinicalTrials.gov..."):
         trials_df = fetch_clinical_trials()
         recent_df = fetch_recent_trials(days=365)
@@ -289,9 +236,9 @@ with tab1:
                 unsafe_allow_html=True)
 
     m1, m2, m3, m4 = st.columns(4)
-    total_trials  = len(trials_df)  if not trials_df.empty  else 0
-    recent_trials = len(recent_df)  if not recent_df.empty  else 0
-    sponsors      = trials_df["Sponsor"].nunique()  if not trials_df.empty else 0
+    total_trials  = len(trials_df)  if not trials_df.empty else 0
+    recent_trials = len(recent_df)  if not recent_df.empty else 0
+    sponsors      = trials_df["Sponsor"].nunique() if not trials_df.empty else 0
     modalities    = trials_df["Modality"].nunique() if not trials_df.empty else 0
 
     for col, num, label in zip(
@@ -322,21 +269,27 @@ with tab1:
                          sorted(trials_df["Phase"].unique().tolist())
             sel_phase = st.selectbox("Phase", phase_opts)
         with f3:
-            search = st.text_input("Search sponsor, indication, or title", "")
+            search = st.text_input(
+                "Search sponsor, indication, or title", "")
 
         filtered = trials_df.copy()
-        if sel_mod   != "All modalities": filtered = filtered[filtered["Modality"] == sel_mod]
-        if sel_phase != "All phases":     filtered = filtered[filtered["Phase"]    == sel_phase]
+        if sel_mod   != "All modalities":
+            filtered = filtered[filtered["Modality"] == sel_mod]
+        if sel_phase != "All phases":
+            filtered = filtered[filtered["Phase"] == sel_phase]
         if search:
             mask = (
-                filtered["Sponsor"].str.contains(search, case=False, na=False) |
-                filtered["Indication"].str.contains(search, case=False, na=False) |
-                filtered["Title"].str.contains(search, case=False, na=False)
+                filtered["Sponsor"].str.contains(
+                    search, case=False, na=False) |
+                filtered["Indication"].str.contains(
+                    search, case=False, na=False) |
+                filtered["Title"].str.contains(
+                    search, case=False, na=False)
             )
             filtered = filtered[mask]
 
         st.markdown(f"""
-        <div style="font-size:12px; color:#666; margin-bottom:10px;">
+        <div style="font-size:12px; color:#333; margin-bottom:10px;">
             Showing {len(filtered)} of {len(trials_df)} trials
         </div>""", unsafe_allow_html=True)
 
@@ -354,7 +307,7 @@ with tab1:
         chart_layout = dict(
             plot_bgcolor="#050505", paper_bgcolor="#050505",
             font_color="#444", title_font_color="#aaa",
-            title_font_size=13, margin=dict(t=40, l=10, r=10, b=10),
+            title_font_size=13, margin=dict(t=40,l=10,r=10,b=10),
             xaxis=dict(gridcolor="#111", showline=False),
             yaxis=dict(gridcolor="#111", showline=False),
         )
@@ -363,8 +316,7 @@ with tab1:
             phase_counts = trials_df["Phase"].value_counts().reset_index()
             phase_counts.columns = ["Phase","Count"]
             fig1 = px.bar(phase_counts, x="Phase", y="Count",
-                          title="Trials by Phase",
-                          color="Count",
+                          title="Trials by Phase", color="Count",
                           color_continuous_scale=["#0d2535","#3ea8cf"])
             fig1.update_layout(**chart_layout, showlegend=False,
                                coloraxis_showscale=False)
@@ -379,12 +331,10 @@ with tab1:
                           color_discrete_sequence=[
                               "#3ea8cf","#3ecf8e","#d4a017",
                               "#cf4f4f","#a855f7","#555"])
-            fig2.update_layout(plot_bgcolor="#050505",
-                               paper_bgcolor="#050505",
-                               font_color="#444",
-                               title_font_color="#aaa",
-                               title_font_size=13,
-                               margin=dict(t=40,l=10,r=10,b=10))
+            fig2.update_layout(
+                plot_bgcolor="#050505", paper_bgcolor="#050505",
+                font_color="#444", title_font_color="#aaa",
+                title_font_size=13, margin=dict(t=40,l=10,r=10,b=10))
             fig2.update_traces(textfont_color="#ccc",
                                marker_line_color="#000",
                                marker_line_width=2)
@@ -402,8 +352,7 @@ with tab1:
             </div>
         </div>""", unsafe_allow_html=True)
 
-        if st.button("Generate External Landscape Synthesis →",
-                     key="syn1"):
+        if st.button("Generate External Landscape Synthesis →", key="syn1"):
             with st.spinner("Analyzing..."):
                 insight = synthesize_external_landscape(trials_df)
             st.markdown(f"""
@@ -421,11 +370,10 @@ with tab1:
 
     else:
         st.markdown("""
-        <div class="proxima-card" style="color:#666; font-size:13px;">
+        <div class="proxima-card" style="color:#333; font-size:13px;">
             Could not load trial data. Check your internet connection.
         </div>""", unsafe_allow_html=True)
 
-    # ── Competitive Landscape ──────────────────────────────────────────────────
     # ── Literature Signals ─────────────────────────────────────────────────────
     st.markdown("<div class='section-label'>Scientific Literature Signals</div>",
                 unsafe_allow_html=True)
@@ -444,20 +392,13 @@ with tab1:
         lit_df = fetch_all_literature()
 
     if not lit_df.empty:
-        # Filter controls
         lf1, lf2 = st.columns([1, 2])
         with lf1:
             source_filter = st.selectbox(
-                "Source",
-                ["All", "PubMed", "bioRxiv"],
-                key="lit_source"
-            )
+                "Source", ["All", "PubMed", "bioRxiv"], key="lit_source")
         with lf2:
             query_filter = st.selectbox(
-                "Topic",
-                ["All"] + LITERATURE_QUERIES,
-                key="lit_query"
-            )
+                "Topic", ["All"] + LITERATURE_QUERIES, key="lit_query")
 
         filtered_lit = lit_df.copy()
         if source_filter != "All":
@@ -487,19 +428,16 @@ with tab1:
                             {row['title']}
                         </a>
                     </div>
-                    <span class="badge {source_cls}" 
-                          style="white-space:nowrap;">
-                        {row['source']}
-                    </span>
+                    <span class="badge {source_cls}">{row['source']}</span>
                 </div>
                 <div style="display:flex; gap:20px; flex-wrap:wrap;">
-                    <div style="font-size:12px; color:#444;">
+                    <div style="font-size:12px; color:#555;">
                         {row['authors']}
                     </div>
-                    <div style="font-size:12px; color:#444;">
+                    <div style="font-size:12px; color:#555;">
                         {row['journal']}
                     </div>
-                    <div style="font-size:12px; color:#444;">
+                    <div style="font-size:12px; color:#555;">
                         {row['date']}
                     </div>
                 </div>
@@ -511,6 +449,7 @@ with tab1:
             Could not load literature data. Check your internet connection.
         </div>""", unsafe_allow_html=True)
 
+    # ── Competitive Landscape ──────────────────────────────────────────────────
     st.markdown("<div class='section-label'>Competitive Landscape</div>",
                 unsafe_allow_html=True)
 
@@ -601,10 +540,11 @@ with tab1:
 
     cf1, cf2 = st.columns([1, 1])
     with cf1:
-        threat_filter = st.selectbox("Relevance",
-            ["All","High","Medium","Low","Partner"])
+        threat_filter = st.selectbox(
+            "Relevance", ["All","High","Medium","Low","Partner"])
     with cf2:
-        mod_filter = st.selectbox("Modality",
+        mod_filter = st.selectbox(
+            "Modality",
             ["All"] + sorted(comp_df["Modality"].unique().tolist()),
             key="comp_mod")
 
@@ -618,19 +558,17 @@ with tab1:
 
     for _, row in filtered_comp.iterrows():
         badge_map = {
-            "High":    "badge-red",
-            "Medium":  "badge-yellow",
-            "Low":     "badge-blue",
-            "Partner": "badge-green",
+            "High":"badge-red", "Medium":"badge-yellow",
+            "Low":"badge-blue", "Partner":"badge-green",
         }
         label_map = {
-            "High": "High relevance", "Medium": "Medium relevance",
-            "Low": "Low relevance",   "Partner": "Active partner",
+            "High":"High relevance", "Medium":"Medium relevance",
+            "Low":"Low relevance",   "Partner":"Active partner",
         }
         phase_color = {
-            "Phase 3": "badge-red", "Phase 2": "badge-yellow",
-            "Phase 1/2": "badge-yellow", "Phase 1": "badge-blue",
-            "Preclinical": "badge-blue",
+            "Phase 3":"badge-red", "Phase 2":"badge-yellow",
+            "Phase 1/2":"badge-yellow", "Phase 1":"badge-blue",
+            "Preclinical":"badge-blue",
         }.get(row["Most Advanced"], "badge-blue")
 
         st.markdown(f"""
@@ -640,11 +578,10 @@ with tab1:
                 <div>
                     <span style="font-size:16px; font-weight:700;
                                  color:#fff;">{row["Company"]}</span>
-                    <span style="font-size:12px; color:#777;
+                    <span style="font-size:12px; color:#555;
                                  margin-left:10px;">{row["Modality"]}</span>
                 </div>
-                <div style="display:flex; gap:6px; flex-wrap:wrap;
-                            justify-content:flex-end;">
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
                     <span class="badge {phase_color}">
                         {row["Most Advanced"]}
                     </span>
@@ -659,7 +596,7 @@ with tab1:
             </div>
             <div style="display:flex; gap:32px; flex-wrap:wrap;">
                 <div>
-                    <div style="font-size:10px; color:#666;
+                    <div style="font-size:10px; color:#444;
                                 text-transform:uppercase;
                                 letter-spacing:1px;">INDICATION</div>
                     <div style="font-size:13px; color:#888; margin-top:3px;">
@@ -667,7 +604,7 @@ with tab1:
                     </div>
                 </div>
                 <div>
-                    <div style="font-size:10px; color:#666;
+                    <div style="font-size:10px; color:#444;
                                 text-transform:uppercase;
                                 letter-spacing:1px;">FUNDING</div>
                     <div style="font-size:13px; color:#888; margin-top:3px;">
@@ -675,7 +612,7 @@ with tab1:
                     </div>
                 </div>
                 <div>
-                    <div style="font-size:10px; color:#666;
+                    <div style="font-size:10px; color:#444;
                                 text-transform:uppercase;
                                 letter-spacing:1px;">COMP. PLATFORM</div>
                     <div style="font-size:13px; color:#888; margin-top:3px;">
@@ -696,13 +633,9 @@ with tab2:
     <div class="proxima-card" style="border-left:2px solid #1a3a1a;">
         <div style="font-size:13px; color:#3ecf8e; font-weight:600;
                     text-transform:uppercase; letter-spacing:1px;
-                    margin-bottom:8px;">
-            PARTNERSHIP PORTFOLIO
-        </div>
+                    margin-bottom:8px;">PARTNERSHIP PORTFOLIO</div>
         <div style="font-size:15px; color:#ffffff; font-weight:500;
-                    margin-bottom:6px;">
-            All active collaborations in one place
-        </div>
+                    margin-bottom:6px;">All active collaborations in one place</div>
         <div style="font-size:13px; color:#555; line-height:1.7;">
             Milestones, data obligations, and decision checkpoints — so
             nothing falls through the cracks. Seeded with publicly available
@@ -720,7 +653,7 @@ with tab2:
             "Deal Value": "$1B+ potential",
             "Upfront": "Undisclosed",
             "Programs": 3,
-            "Most Advanced": "Preclinical &#8594; IND",
+            "Most Advanced": "Preclinical to IND",
             "Next Milestone": "IND Filing",
             "Milestone Date": "Q3 2026",
             "Days Until": 120,
@@ -831,9 +764,10 @@ with tab2:
     sorted_partners = sorted(partnerships, key=lambda x: x["Days Until"])
     for p in sorted_partners:
         d = p["Days Until"]
-        color  = "#cf4f4f" if d <= 60 else "#d4a017" if d <= 120 else "#3ea8cf"
-        label  = "Urgent"  if d <= 60 else "Soon"    if d <= 120 else "Upcoming"
-        b_cls  = "badge-red" if d <= 60 else "badge-yellow" if d <= 120 else "badge-blue"
+        color = "#cf4f4f" if d<=60 else "#d4a017" if d<=120 else "#3ea8cf"
+        label = "Urgent" if d<=60 else "Soon" if d<=120 else "Upcoming"
+        b_cls = "badge-red" if d<=60 else \
+                "badge-yellow" if d<=120 else "badge-blue"
         st.markdown(f"""
         <div class="proxima-card"
              style="border-left:2px solid {color}; padding:16px 20px;">
@@ -843,14 +777,14 @@ with tab2:
                     <span class="badge {b_cls}">{label}</span>
                     <span style="font-size:14px; font-weight:600;
                                  color:#fff;">{p["Partner"]}</span>
-                    <span style="font-size:13px; color:#777;">
-                        &#8594; {p["Next Milestone"]}
+                    <span style="font-size:13px; color:#555;">
+                        {p["Next Milestone"]}
                     </span>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:13px; color:{color};
                                 font-weight:600;">{p["Milestone Date"]}</div>
-                    <div style="font-size:11px; color:#666;">
+                    <div style="font-size:11px; color:#444;">
                         ~{d} days
                     </div>
                 </div>
@@ -869,7 +803,6 @@ with tab2:
         d = p["Days Until"]
         ms_color = "#cf4f4f" if d<=60 else "#d4a017" if d<=120 else "#3ea8cf"
 
-        # Header
         st.markdown(f"""
         <div class="proxima-card">
             <div style="display:flex; justify-content:space-between;
@@ -879,9 +812,7 @@ with tab2:
                                 color:#fff; margin-bottom:3px;">
                         {p["Partner"]}
                     </div>
-                    <div style="font-size:12px; color:#777;">
-                        {p["Focus"]}
-                    </div>
+                    <div style="font-size:12px; color:#555;">{p["Focus"]}</div>
                 </div>
                 <div style="display:flex; gap:6px;">
                     <span class="badge badge-green">Active</span>
@@ -891,46 +822,44 @@ with tab2:
         </div>
         """, unsafe_allow_html=True)
 
-        # Stats row
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.markdown(f"""
             <div style="padding:0 0 12px 0;">
-                <div style="font-size:10px; color:#666; text-transform:uppercase;
-                            letter-spacing:1px;">INDICATION</div>
-                <div style="font-size:13px; color:#888; margin-top:3px;">
-                    {p["Indication"]}
-                </div>
+                <div style="font-size:10px; color:#555;
+                            text-transform:uppercase; letter-spacing:1px;">
+                    INDICATION</div>
+                <div style="font-size:13px; color:#999; margin-top:3px;">
+                    {p["Indication"]}</div>
             </div>""", unsafe_allow_html=True)
         with col2:
             st.markdown(f"""
             <div style="padding:0 0 12px 0;">
-                <div style="font-size:10px; color:#666; text-transform:uppercase;
-                            letter-spacing:1px;">DEAL VALUE</div>
-                <div style="font-size:13px; color:#888; margin-top:3px;">
-                    {p["Deal Value"]}
-                </div>
+                <div style="font-size:10px; color:#555;
+                            text-transform:uppercase; letter-spacing:1px;">
+                    DEAL VALUE</div>
+                <div style="font-size:13px; color:#999; margin-top:3px;">
+                    {p["Deal Value"]}</div>
             </div>""", unsafe_allow_html=True)
         with col3:
             st.markdown(f"""
             <div style="padding:0 0 12px 0;">
-                <div style="font-size:10px; color:#666; text-transform:uppercase;
-                            letter-spacing:1px;">PROGRAMS</div>
-                <div style="font-size:13px; color:#888; margin-top:3px;">
-                    {p["Programs"]} active
-                </div>
+                <div style="font-size:10px; color:#555;
+                            text-transform:uppercase; letter-spacing:1px;">
+                    PROGRAMS</div>
+                <div style="font-size:13px; color:#999; margin-top:3px;">
+                    {p["Programs"]} active</div>
             </div>""", unsafe_allow_html=True)
         with col4:
             st.markdown(f"""
             <div style="padding:0 0 12px 0;">
-                <div style="font-size:10px; color:#666; text-transform:uppercase;
-                            letter-spacing:1px;">MOST ADVANCED</div>
-                <div style="font-size:13px; color:#888; margin-top:3px;">
-                    {p["Most Advanced"]}
-                </div>
+                <div style="font-size:10px; color:#555;
+                            text-transform:uppercase; letter-spacing:1px;">
+                    MOST ADVANCED</div>
+                <div style="font-size:13px; color:#999; margin-top:3px;">
+                    {p["Most Advanced"]}</div>
             </div>""", unsafe_allow_html=True)
 
-        # Milestone box
         st.markdown(f"""
         <div style="background:#040404; border:1px solid #111;
                     border-radius:8px; padding:14px 18px;
@@ -938,7 +867,7 @@ with tab2:
             <div style="display:flex; justify-content:space-between;
                         align-items:center;">
                 <div>
-                    <div style="font-size:10px; color:#666;
+                    <div style="font-size:10px; color:#555;
                                 text-transform:uppercase;
                                 letter-spacing:1px;">NEXT MILESTONE</div>
                     <div style="font-size:15px; color:#fff;
@@ -948,53 +877,48 @@ with tab2:
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:14px; color:{ms_color};
-                                font-weight:600;">
-                        {p["Milestone Date"]}
-                    </div>
-                    <div style="font-size:11px; color:#666; margin-top:2px;">
-                        ~{d} days away
-                    </div>
+                                font-weight:600;">{p["Milestone Date"]}</div>
+                    <div style="font-size:11px; color:#444; margin-top:2px;">
+                        ~{d} days away</div>
                 </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-        # Obligations row
-        ob_col1, ob_col2 = st.columns(2)
-        with ob_col1:
+        ob1, ob2 = st.columns(2)
+        with ob1:
             st.markdown(f"""
             <div style="padding:0 0 12px 0;">
-                <div style="font-size:10px; color:#888; text-transform:uppercase;
-                            letter-spacing:1px;">DATA OBLIGATIONS</div>
+                <div style="font-size:10px; color:#555;
+                            text-transform:uppercase; letter-spacing:1px;">
+                    DATA OBLIGATIONS</div>
                 <div style="font-size:13px; color:#888; margin-top:3px;">
-                    {p["Data Obligations"]}
-                </div>
+                    {p["Data Obligations"]}</div>
             </div>""", unsafe_allow_html=True)
-        with ob_col2:
+        with ob2:
             st.markdown(f"""
             <div style="padding:0 0 12px 0;">
-                <div style="font-size:10px; color:#888; text-transform:uppercase;
-                            letter-spacing:1px;">JOINT STEERING</div>
+                <div style="font-size:10px; color:#555;
+                            text-transform:uppercase; letter-spacing:1px;">
+                    JOINT STEERING</div>
                 <div style="font-size:13px; color:#888; margin-top:3px;">
-                    {p["Joint Steering"]}
-                </div>
+                    {p["Joint Steering"]}</div>
             </div>""", unsafe_allow_html=True)
 
-        # Notes
         st.markdown(f"""
-        <div style="font-size:13px; color:#888; line-height:1.7;
+        <div style="font-size:13px; color:#666; line-height:1.7;
                     border-top:1px solid #111; padding-top:12px;
                     margin-bottom:24px;">
             {p["Notes"]}
         </div>
         """, unsafe_allow_html=True)
-        
+
     # ── AI Synthesis ───────────────────────────────────────────────────────────
     st.markdown("<div class='section-label'>AI Strategic Synthesis</div>",
                 unsafe_allow_html=True)
     st.markdown("""
     <div class="proxima-card">
-        <div style="font-size:13px; color:#888; line-height:1.7;">
+        <div style="font-size:13px; color:#555; line-height:1.7;">
             Generate a live strategic assessment of the partnership portfolio —
             risk concentration, near-term priorities, and what deserves
             a leadership conversation right now.
@@ -1027,9 +951,7 @@ with tab3:
     <div class="proxima-card" style="border-left:2px solid #2a1a00;">
         <div style="font-size:13px; color:#d4a017; font-weight:600;
                     text-transform:uppercase; letter-spacing:1px;
-                    margin-bottom:8px;">
-            RESOURCE ALLOCATION
-        </div>
+                    margin-bottom:8px;">RESOURCE ALLOCATION</div>
         <div style="font-size:15px; color:#ffffff; font-weight:500;
                     margin-bottom:6px;">
             Where is effort going versus where is the opportunity?
@@ -1054,7 +976,7 @@ with tab3:
             "Competitive Pressure": "High",
             "Strategic Fit": "Core",
             "FTEs Allocated": 8,
-            "Notes": "Most advanced internal program. Direct overlap with Monte Rosa and Kymera. Neo-1 glue design is the key differentiator — needs to be demonstrably faster or better to justify.",
+            "Notes": "Most advanced internal program. Direct overlap with Monte Rosa and Kymera. Neo-1 glue design is the key differentiator.",
         },
         {
             "Program": "PRX-002",
@@ -1067,7 +989,7 @@ with tab3:
             "Competitive Pressure": "Medium",
             "Strategic Fit": "Core",
             "FTEs Allocated": 6,
-            "Notes": "Strong NeoLink structural data advantage. BRD4 space is crowded but novel BRD targets remain accessible with our proteome coverage.",
+            "Notes": "Strong NeoLink structural data advantage. BRD4 space is crowded but novel BRD targets remain accessible.",
         },
         {
             "Program": "PRX-003",
@@ -1080,20 +1002,20 @@ with tab3:
             "Competitive Pressure": "Low",
             "Strategic Fit": "Emerging",
             "FTEs Allocated": 4,
-            "Notes": "Immunology whitespace. Limited competition. Our only immunology program — underdeveloped relative to the opportunity size.",
+            "Notes": "Immunology whitespace. Limited competition. Our only immunology program — underdeveloped relative to the opportunity.",
         },
         {
             "Program": "JNJ-PRX-01",
             "Target Class": "Undisclosed",
             "Modality": "ProMod",
             "Indication": "Oncology",
-            "Stage": "Preclinical &#8594; IND",
+            "Stage": "Preclinical to IND",
             "Internal vs Partner": "J&J",
             "NeoLink Coverage": "High",
             "Competitive Pressure": "Medium",
             "Strategic Fit": "Core",
             "FTEs Allocated": 5,
-            "Notes": "First program approaching IND. Milestone-critical. J&J owns clinical development from IND onward — our job is to get them there on time.",
+            "Notes": "First program approaching IND. Milestone-critical.",
         },
         {
             "Program": "JNJ-PRX-02",
@@ -1106,7 +1028,7 @@ with tab3:
             "Competitive Pressure": "Low",
             "Strategic Fit": "Core",
             "FTEs Allocated": 3,
-            "Notes": "Second J&J program. Earlier stage. Strong NeoLink coverage provides structural advantage on this target class.",
+            "Notes": "Second J&J program. Earlier stage.",
         },
         {
             "Program": "BMS-PRX-01",
@@ -1119,7 +1041,7 @@ with tab3:
             "Competitive Pressure": "Low",
             "Strategic Fit": "Expanding",
             "FTEs Allocated": 4,
-            "Notes": "Proxima's first meaningful immunology exposure via a partner program. Important signal for portfolio diversification beyond oncology.",
+            "Notes": "Proxima's first meaningful immunology exposure via a partner program.",
         },
         {
             "Program": "HALDA-PRX-01",
@@ -1132,7 +1054,7 @@ with tab3:
             "Competitive Pressure": "Low",
             "Strategic Fit": "Core",
             "FTEs Allocated": 5,
-            "Notes": "Lead RIPTAC program. Neo-1 ternary complex strength is uniquely suited here. Minimal external competition — this is where we should be pressing our advantage.",
+            "Notes": "Lead RIPTAC program. Neo-1 ternary complex strength is uniquely suited here.",
         },
         {
             "Program": "HALDA-PRX-02",
@@ -1145,7 +1067,7 @@ with tab3:
             "Competitive Pressure": "Low",
             "Strategic Fit": "Core",
             "FTEs Allocated": 3,
-            "Notes": "Earlier stage RIPTAC program. NeoLink proteome scan ongoing for target identification.",
+            "Notes": "Earlier stage RIPTAC program.",
         },
     ]
 
@@ -1156,10 +1078,10 @@ with tab3:
                 unsafe_allow_html=True)
 
     rm1, rm2, rm3, rm4 = st.columns(4)
-    total_p2    = len(prog_df)
-    internal_n  = len(prog_df[prog_df["Internal vs Partner"] == "Internal"])
-    partner_n   = total_p2 - internal_n
-    total_ftes  = prog_df["FTEs Allocated"].sum()
+    total_p2   = len(prog_df)
+    internal_n = len(prog_df[prog_df["Internal vs Partner"] == "Internal"])
+    partner_n  = total_p2 - internal_n
+    total_ftes = prog_df["FTEs Allocated"].sum()
 
     for col, num, label in zip(
         [rm1, rm2, rm3, rm4],
@@ -1187,10 +1109,10 @@ with tab3:
     )
 
     with ac1:
-        fte_mod = prog_df.groupby("Modality")["FTEs Allocated"].sum().reset_index()
+        fte_mod = prog_df.groupby("Modality")[
+            "FTEs Allocated"].sum().reset_index()
         fig3 = px.bar(fte_mod, x="Modality", y="FTEs Allocated",
-                      title="FTEs by Modality",
-                      color="FTEs Allocated",
+                      title="FTEs by Modality", color="FTEs Allocated",
                       color_continuous_scale=["#1a1a00","#d4a017"])
         fig3.update_layout(**chart_layout2, showlegend=False,
                            coloraxis_showscale=False)
@@ -1198,35 +1120,38 @@ with tab3:
         st.plotly_chart(fig3, use_container_width=True)
 
     with ac2:
-        fte_own = prog_df.groupby("Internal vs Partner")["FTEs Allocated"].sum().reset_index()
+        fte_own = prog_df.groupby("Internal vs Partner")[
+            "FTEs Allocated"].sum().reset_index()
         fig4 = px.pie(fte_own, names="Internal vs Partner",
                       values="FTEs Allocated",
                       title="FTE Split: Internal vs Partner",
                       color_discrete_sequence=[
-                          "#3ecf8e","#3ea8cf","#d4a017","#cf4f4f","#a855f7"])
-        fig4.update_layout(plot_bgcolor="#050505", paper_bgcolor="#050505",
-                           font_color="#444", title_font_color="#aaa",
-                           title_font_size=13,
-                           margin=dict(t=40,l=10,r=10,b=10))
+                          "#3ecf8e","#3ea8cf","#d4a017",
+                          "#cf4f4f","#a855f7"])
+        fig4.update_layout(
+            plot_bgcolor="#050505", paper_bgcolor="#050505",
+            font_color="#444", title_font_color="#aaa",
+            title_font_size=13, margin=dict(t=40,l=10,r=10,b=10))
         fig4.update_traces(textfont_color="#ccc",
                            marker_line_color="#000",
                            marker_line_width=2)
         st.plotly_chart(fig4, use_container_width=True)
 
     # ── Bubble chart ───────────────────────────────────────────────────────────
-    st.markdown("<div class='section-label'>Opportunity vs. Effort Matrix</div>",
-                unsafe_allow_html=True)
+    st.markdown(
+        "<div class='section-label'>Opportunity vs. Effort Matrix</div>",
+        unsafe_allow_html=True)
 
     st.markdown("""
     <div class="proxima-card" style="margin-bottom:16px;">
-        <div style="font-size:13px; color:#888; line-height:1.7;">
-            <b style="color:#aaa;">X-axis</b> = competitive pressure externally.
-            <b style="color:#aaa;">Y-axis</b> = FTEs allocated internally.
+        <div style="font-size:13px; color:#555; line-height:1.7;">
+            <b style="color:#aaa;">X-axis</b> = competitive pressure.
+            <b style="color:#aaa;">Y-axis</b> = FTEs allocated.
             <b style="color:#aaa;">Bubble size</b> = NeoLink data coverage.
-            Programs in the <b style="color:#3ecf8e;">top-left</b> are high
-            effort in low-competition spaces — the sweet spot.
-            Programs in the <b style="color:#cf4f4f;">top-right</b> are high
-            effort in crowded spaces — worth scrutinizing.
+            <b style="color:#3ecf8e;">Top-left</b> = high effort, low
+            competition — the sweet spot.
+            <b style="color:#cf4f4f;">Top-right</b> = high effort in crowded
+            spaces — worth scrutinizing.
         </div>
     </div>""", unsafe_allow_html=True)
 
@@ -1259,11 +1184,14 @@ with tab3:
         margin=dict(t=40,l=10,r=10,b=10),
         xaxis=dict(
             tickvals=[1,2,3],
-            ticktext=["Low Competition","Medium Competition","High Competition"],
+            ticktext=["Low Competition","Medium Competition",
+                      "High Competition"],
             gridcolor="#111", showline=False,
         ),
-        yaxis=dict(title="FTEs Allocated", gridcolor="#111", showline=False),
-        legend=dict(bgcolor="#050505", bordercolor="#1a1a1a", borderwidth=1),
+        yaxis=dict(title="FTEs Allocated",
+                   gridcolor="#111", showline=False),
+        legend=dict(bgcolor="#050505",
+                    bordercolor="#1a1a1a", borderwidth=1),
     )
     st.plotly_chart(fig5, use_container_width=True)
 
@@ -1275,27 +1203,27 @@ with tab3:
         {
             "color": "#cf4f4f", "icon": "⚠",
             "title": "High competitive pressure on PRX-001",
-            "body": "PRX-001 faces direct competition from Monte Rosa and Kymera — both well-funded and clinically advanced. Neo-1's structural design advantage needs to be the differentiator. Worth reviewing whether this target class is better positioned as a partner program than an internal one.",
+            "body": "PRX-001 faces direct competition from Monte Rosa and Kymera — both well-funded and clinically advanced. Neo-1's structural design advantage needs to be the differentiator. Worth reviewing whether this target class is better positioned as a partner program.",
         },
         {
             "color": "#3ecf8e", "icon": "↑",
             "title": "Immunology whitespace is underweighted",
-            "body": "PRX-003 is our only immunology program with 4 FTEs. External data shows low competitive pressure in ProMod immunology. BMS partnership provides a beachhead. The question for leadership: is this a deliberate choice or a resource allocation gap?",
+            "body": "PRX-003 is our only immunology program with 4 FTEs. External data shows low competitive pressure in ProMod immunology. BMS partnership provides a beachhead. Is this a deliberate choice or a resource allocation gap?",
         },
         {
             "color": "#3ecf8e", "icon": "↑",
             "title": "RIPTAC space is wide open — press the advantage",
-            "body": "Halda programs are the only RIPTAC work in the portfolio and clinical trial data shows minimal external competition. Neo-1's ternary complex prediction strength is uniquely suited here. This is likely the highest-leverage area for Proxima to deepen internal investment alongside the Halda partnership.",
+            "body": "Halda programs are the only RIPTAC work in the portfolio and the clinical trial data shows minimal external competition. Neo-1's ternary complex prediction strength is uniquely suited here. Highest-leverage area for deeper investment.",
         },
         {
             "color": "#3ea8cf", "icon": "→",
             "title": "Partner programs represent 54% of FTE allocation",
-            "body": "More than half of allocated effort is on partner programs. This is appropriate at seed stage — partners fund the work. But as Proxima scales toward Series A, the balance between platform-as-a-service and proprietary pipeline needs active management to preserve long-term equity value.",
+            "body": "More than half of allocated effort is on partner programs. Appropriate at seed stage but as Proxima scales toward Series A, the balance between platform-as-a-service and proprietary pipeline needs active management.",
         },
         {
             "color": "#d4a017", "icon": "⚠",
             "title": "Blueprint/Sanofi acquisition creates near-term uncertainty",
-            "body": "Post-acquisition strategic reprioritization is common and can delay or deprioritize in-flight collaborations. The Q2 2026 milestone should be closely monitored — any delay may signal reduced partner commitment and should trigger a proactive conversation.",
+            "body": "Post-acquisition strategic reprioritization is common. The Q2 2026 milestone should be closely monitored — any delay may signal reduced partner commitment and should trigger a proactive conversation.",
         },
     ]
 
@@ -1304,13 +1232,13 @@ with tab3:
         <div class="proxima-card" style="border-left:2px solid {f['color']};">
             <div style="display:flex; gap:14px; align-items:flex-start;">
                 <div style="font-size:16px; color:{f['color']};
-                            font-weight:700; margin-top:1px;">
-                    {f['icon']}
-                </div>
+                            font-weight:700; margin-top:1px;">{f['icon']}</div>
                 <div>
-                    <div style="font-size:14px; font-weight:600; color:#fff;
-                                margin-bottom:6px;">{f['title']}</div>
-                    <div style="font-size:13px; color:#888;
+                    <div style="font-size:14px; font-weight:600;
+                                color:#fff; margin-bottom:6px;">
+                        {f['title']}
+                    </div>
+                    <div style="font-size:13px; color:#666;
                                 line-height:1.7;">{f['body']}</div>
                 </div>
             </div>
@@ -1332,7 +1260,7 @@ with tab3:
                 unsafe_allow_html=True)
     st.markdown("""
     <div class="proxima-card">
-        <div style="font-size:13px; color:#888; line-height:1.7;">
+        <div style="font-size:13px; color:#555; line-height:1.7;">
             Generate a live strategic assessment of resource allocation —
             whether effort is going where the opportunity is, and what
             to bring to leadership.
@@ -1369,31 +1297,29 @@ with tab3:
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
             <div>
-                <div style="font-size:10px; color:#666; text-transform:uppercase;
+                <div style="font-size:10px; color:#444;
+                            text-transform:uppercase;
                             letter-spacing:1.5px; margin-bottom:12px;
-                            font-weight:600;">
-                    PARTNERSHIP OPS
-                </div>
-                <div style="font-size:13px; color:#888; line-height:2;">
-                    → Milestone alert system with Slack / email triggers<br>
-                    → Data obligation tracker with delivery confirmations<br>
-                    → JSC prep templates auto-populated from program data<br>
-                    → Contract obligation parser from deal PDFs<br>
-                    → Partner health scoring updated quarterly
+                            font-weight:600;">PARTNERSHIP OPS</div>
+                <div style="font-size:13px; color:#666; line-height:2;">
+                    Milestone alert system with Slack / email triggers<br>
+                    Data obligation tracker with delivery confirmations<br>
+                    JSC prep templates auto-populated from program data<br>
+                    Contract obligation parser from deal PDFs<br>
+                    Partner health scoring updated quarterly
                 </div>
             </div>
             <div>
-                <div style="font-size:10px; color:#666; text-transform:uppercase;
+                <div style="font-size:10px; color:#444;
+                            text-transform:uppercase;
                             letter-spacing:1.5px; margin-bottom:12px;
-                            font-weight:600;">
-                    INTELLIGENCE & PLANNING
-                </div>
-                <div style="font-size:13px; color:#888; line-height:2;">
-                    → Auto-refreshing signals from PubMed + bioRxiv<br>
-                    → Headcount planning tied to program stage gates<br>
-                    → CRO / CMO vendor tracker for IND-readiness<br>
-                    → Internal vs. partner decision scoring rubric<br>
-                    → Board reporting templates auto-generated
+                            font-weight:600;">INTELLIGENCE & PLANNING</div>
+                <div style="font-size:13px; color:#666; line-height:2;">
+                    Auto-refreshing signals from PubMed + bioRxiv<br>
+                    Headcount planning tied to program stage gates<br>
+                    CRO / CMO vendor tracker for IND-readiness<br>
+                    Internal vs. partner decision scoring rubric<br>
+                    Board reporting templates auto-generated
                 </div>
             </div>
         </div>
