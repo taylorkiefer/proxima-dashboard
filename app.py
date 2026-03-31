@@ -899,7 +899,7 @@ with tab2:
                 unsafe_allow_html=True)
     st.markdown("""
     <div class="proxima-card">
-        <div style="font-size:13px; color:#555; line-height:1.7;">
+        <div style="font-size:13px; color:#888; line-height:1.7;">
             Generate a live strategic assessment of the partnership portfolio —
             risk concentration, near-term priorities, and what deserves
             a leadership conversation right now.
