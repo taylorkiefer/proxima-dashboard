@@ -274,53 +274,61 @@ def fetch_pubmed_articles(query: str, max_results: int = 5) -> list:
 @st.cache_data(ttl=3600)
 def fetch_biorxiv_articles(query: str, max_results: int = 5) -> list:
     """
-    Fetches recent bioRxiv preprints for a given query.
-    Returns a list of article dicts.
+    Fetches recent bioRxiv preprints using their search API.
     """
     try:
-        # bioRxiv search API
-        url = f"https://api.biorxiv.org/details/biorxiv/2025-01-01/2026-12-31/0/json"
-        resp = requests.get(url, timeout=10)
+        # Use bioRxiv search endpoint
+        search_url = "https://api.biorxiv.org/details/biorxiv/2025-01-01/2026-04-01/0/json"
+        resp = requests.get(search_url, timeout=15)
         if resp.status_code != 200:
             return []
 
         collection = resp.json().get("collection", [])
-        query_terms = query.lower().split()
+        if not collection:
+            return []
 
-        # Filter by query terms in title or abstract
-        matches = []
+        # Score each paper by how many query words appear in title/abstract
+        query_terms = [t.lower() for t in query.split()
+                       if len(t) > 3]  # skip short words
+
+        scored = []
         for paper in collection:
-            title = paper.get("title", "").lower()
+            title    = paper.get("title", "").lower()
             abstract = paper.get("abstract", "").lower()
             combined = title + " " + abstract
-            if all(term in combined for term in query_terms):
-                matches.append(paper)
-            if len(matches) >= max_results:
-                break
+            score    = sum(1 for t in query_terms if t in combined)
+            if score > 0:
+                scored.append((score, paper))
+
+        # Sort by score descending
+        scored.sort(key=lambda x: x[0], reverse=True)
+        top = [p for _, p in scored[:max_results]]
 
         articles = []
-        for paper in matches:
+        for paper in top:
             authors = paper.get("authors", "—")
-            if len(authors) > 50:
-                authors = authors[:50].rsplit(",", 1)[0] + " et al."
+            if len(authors) > 60:
+                authors = authors[:60].rsplit(",", 1)[0] + " et al."
 
-            doi = paper.get("doi", "")
+            doi  = paper.get("doi", "")
+            date = paper.get("date", "—")
+
             articles.append({
-                "title": paper.get("title", "—"),
+                "title":   paper.get("title", "—"),
                 "authors": authors,
                 "journal": "bioRxiv (preprint)",
-                "date": paper.get("date", "—"),
-                "pmid": doi,
-                "url": f"https://doi.org/{doi}" if doi else "https://biorxiv.org",
-                "source": "bioRxiv",
-                "query": query,
+                "date":    date,
+                "pmid":    doi,
+                "url": f"https://doi.org/{doi}" if doi
+                       else "https://biorxiv.org",
+                "source":  "bioRxiv",
+                "query":   query,
             })
 
         return articles
 
     except Exception:
         return []
-
 
 @st.cache_data(ttl=3600)
 def fetch_all_literature() -> pd.DataFrame:
