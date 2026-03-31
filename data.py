@@ -274,53 +274,61 @@ def fetch_pubmed_articles(query: str, max_results: int = 5) -> list:
 @st.cache_data(ttl=3600)
 def fetch_biorxiv_articles(query: str, max_results: int = 5) -> list:
     """
-    Fetches recent bioRxiv preprints using their search API.
+    Fetches recent bioRxiv preprints via Europe PMC API,
+    which reliably indexes bioRxiv content.
     """
     try:
-        # Use bioRxiv search endpoint
-        search_url = "https://api.biorxiv.org/details/biorxiv/2025-01-01/2026-04-01/0/json"
-        resp = requests.get(search_url, timeout=15)
+        url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
+        params = {
+            "query": f"{query} SOURCE:PPR",  # PPR = preprints incl. bioRxiv
+            "format": "json",
+            "pageSize": max_results,
+            "sort": "P_PDATE_D desc",
+            "resultType": "core",
+        }
+        resp = requests.get(url, params=params, timeout=10)
         if resp.status_code != 200:
             return []
 
-        collection = resp.json().get("collection", [])
-        if not collection:
+        results = resp.json().get("resultList", {}).get("result", [])
+        if not results:
             return []
 
-        # Score each paper by how many query words appear in title/abstract
-        query_terms = [t.lower() for t in query.split()
-                       if len(t) > 3]  # skip short words
-
-        scored = []
-        for paper in collection:
-            title    = paper.get("title", "").lower()
-            abstract = paper.get("abstract", "").lower()
-            combined = title + " " + abstract
-            score    = sum(1 for t in query_terms if t in combined)
-            if score > 0:
-                scored.append((score, paper))
-
-        # Sort by score descending
-        scored.sort(key=lambda x: x[0], reverse=True)
-        top = [p for _, p in scored[:max_results]]
-
         articles = []
-        for paper in top:
-            authors = paper.get("authors", "—")
-            if len(authors) > 60:
-                authors = authors[:60].rsplit(",", 1)[0] + " et al."
+        for item in results:
+            # Authors
+            author_list = item.get("authorList", {}).get("author", [])
+            if author_list:
+                first = author_list[0]
+                author_str = first.get("fullName",
+                             first.get("lastName", "—"))
+                if len(author_list) > 1:
+                    author_str += " et al."
+            else:
+                author_str = "—"
 
-            doi  = paper.get("doi", "")
-            date = paper.get("date", "—")
+            # Source label
+            source_str = item.get("bookOrReportDetails", {})
+            journal = item.get("journalTitle", "")
+            if not journal:
+                journal = "bioRxiv (preprint)"
+
+            # URL
+            doi = item.get("doi", "")
+            url_link = f"https://doi.org/{doi}" if doi \
+                       else "https://europepmc.org"
+
+            # Date
+            date = item.get("firstPublicationDate",
+                   item.get("pubYear", "—"))
 
             articles.append({
-                "title":   paper.get("title", "—"),
-                "authors": authors,
-                "journal": "bioRxiv (preprint)",
+                "title":   item.get("title", "—").rstrip("."),
+                "authors": author_str,
+                "journal": journal,
                 "date":    date,
                 "pmid":    doi,
-                "url": f"https://doi.org/{doi}" if doi
-                       else "https://biorxiv.org",
+                "url":     url_link,
                 "source":  "bioRxiv",
                 "query":   query,
             })
