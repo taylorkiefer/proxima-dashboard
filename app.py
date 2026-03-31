@@ -625,7 +625,7 @@ with tab2:
             "Deal Value": "$1B+ potential",
             "Upfront": "Undisclosed",
             "Programs": 3,
-            "Most Advanced": "Preclinical → IND",
+            "Most Advanced": "Preclinical &#8594; IND",
             "Next Milestone": "IND Filing",
             "Milestone Date": "Q3 2026",
             "Days Until": 120,
@@ -749,7 +749,7 @@ with tab2:
                     <span style="font-size:14px; font-weight:600;
                                  color:#fff;">{p["Partner"]}</span>
                     <span style="font-size:13px; color:#444;">
-                        → {p["Next Milestone"]}
+                        &#8594; {p["Next Milestone"]}
                     </span>
                 </div>
                 <div style="text-align:right;">
@@ -980,7 +980,7 @@ with tab3:
             "Target Class": "Undisclosed",
             "Modality": "ProMod",
             "Indication": "Oncology",
-            "Stage": "Preclinical → IND",
+            "Stage": "Preclinical &#8594; IND",
             "Internal vs Partner": "J&J",
             "NeoLink Coverage": "High",
             "Competitive Pressure": "Medium",
