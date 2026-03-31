@@ -5,6 +5,11 @@ from data import (
     fetch_all_literature,
     LITERATURE_QUERIES,
 )
+# TEMPORARY DEBUG — remove after testing
+    from data import debug_europepmc
+    debug_result = debug_europepmc("molecular glue degrader")
+    st.json(debug_result)
+
 from synthesis import (
     synthesize_external_landscape,
     synthesize_partnership_portfolio,
