@@ -1,5 +1,10 @@
 import streamlit as st
-from data import fetch_clinical_trials, fetch_recent_trials
+from data import (
+    fetch_clinical_trials,
+    fetch_recent_trials,
+    fetch_all_literature,
+    LITERATURE_QUERIES,
+)
 from synthesis import (
     synthesize_external_landscape,
     synthesize_partnership_portfolio,
@@ -416,6 +421,91 @@ with tab1:
         </div>""", unsafe_allow_html=True)
 
     # ── Competitive Landscape ──────────────────────────────────────────────────
+    # ── Literature Signals ─────────────────────────────────────────────────────
+    st.markdown("<div class='section-label'>Scientific Literature Signals</div>",
+                unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="proxima-card" style="margin-bottom:16px;">
+        <div style="font-size:13px; color:#555; line-height:1.7;">
+            Recent publications from PubMed and bioRxiv across key ProMod
+            search terms. Updated hourly — surfacing where scientific
+            momentum is building before it shows up in the clinic.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    with st.spinner("Fetching latest literature from PubMed and bioRxiv..."):
+        lit_df = fetch_all_literature()
+
+    if not lit_df.empty:
+        # Filter controls
+        lf1, lf2 = st.columns([1, 2])
+        with lf1:
+            source_filter = st.selectbox(
+                "Source",
+                ["All", "PubMed", "bioRxiv"],
+                key="lit_source"
+            )
+        with lf2:
+            query_filter = st.selectbox(
+                "Topic",
+                ["All"] + LITERATURE_QUERIES,
+                key="lit_query"
+            )
+
+        filtered_lit = lit_df.copy()
+        if source_filter != "All":
+            filtered_lit = filtered_lit[
+                filtered_lit["source"] == source_filter]
+        if query_filter != "All":
+            filtered_lit = filtered_lit[
+                filtered_lit["query"] == query_filter]
+
+        st.markdown(f"""
+        <div style="font-size:12px; color:#333; margin-bottom:10px;">
+            Showing {len(filtered_lit)} articles
+        </div>""", unsafe_allow_html=True)
+
+        for _, row in filtered_lit.head(20).iterrows():
+            source_cls = "badge-blue" if row["source"] == "PubMed" \
+                         else "badge-purple"
+            st.markdown(f"""
+            <div class="proxima-card" style="padding:16px 20px;">
+                <div style="display:flex; justify-content:space-between;
+                            align-items:flex-start; margin-bottom:8px;">
+                    <div style="flex:1; padding-right:16px;">
+                        <a href="{row['url']}" target="_blank"
+                           style="font-size:14px; font-weight:500;
+                                  color:#ffffff; text-decoration:none;
+                                  line-height:1.5;">
+                            {row['title']}
+                        </a>
+                    </div>
+                    <span class="badge {source_cls}" 
+                          style="white-space:nowrap;">
+                        {row['source']}
+                    </span>
+                </div>
+                <div style="display:flex; gap:20px; flex-wrap:wrap;">
+                    <div style="font-size:12px; color:#444;">
+                        {row['authors']}
+                    </div>
+                    <div style="font-size:12px; color:#444;">
+                        {row['journal']}
+                    </div>
+                    <div style="font-size:12px; color:#444;">
+                        {row['date']}
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="proxima-card" style="color:#333; font-size:13px;">
+            Could not load literature data. Check your internet connection.
+        </div>""", unsafe_allow_html=True)
+
     st.markdown("<div class='section-label'>Competitive Landscape</div>",
                 unsafe_allow_html=True)
 

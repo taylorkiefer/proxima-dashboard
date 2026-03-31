@@ -181,3 +181,170 @@ def fetch_recent_trials(days=365):
     df["_start_parsed"] = df["Start Date"].apply(parse_date)
     recent = df[df["_start_parsed"] >= cutoff].drop(columns=["_start_parsed"])
     return recent
+
+# ── PubMed + bioRxiv Literature Signals ───────────────────────────────────────
+
+PUBMED_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+BIORXIV_BASE = "https://api.biorxiv.org/details"
+
+LITERATURE_QUERIES = [
+    "molecular glue degrader",
+    "PROTAC protein degradation",
+    "proximity modulator therapeutic",
+    "RIPTAC targeted degradation",
+    "induced proximity drug discovery",
+]
+
+@st.cache_data(ttl=3600)
+def fetch_pubmed_articles(query: str, max_results: int = 5) -> list:
+    """
+    Fetches recent PubMed articles for a given query.
+    Returns a list of article dicts.
+    """
+    try:
+        # Step 1: Search for IDs
+        search_url = f"{PUBMED_BASE}/esearch.fcgi"
+        search_params = {
+            "db": "pubmed",
+            "term": query,
+            "retmax": max_results,
+            "sort": "date",
+            "retmode": "json",
+            "datetype": "pdat",
+            "reldate": 180,  # Last 6 months
+        }
+        search_resp = requests.get(search_url, params=search_params, timeout=10)
+        if search_resp.status_code != 200:
+            return []
+
+        id_list = search_resp.json().get("esearchresult", {}).get("idlist", [])
+        if not id_list:
+            return []
+
+        # Step 2: Fetch details for those IDs
+        fetch_url = f"{PUBMED_BASE}/esummary.fcgi"
+        fetch_params = {
+            "db": "pubmed",
+            "id": ",".join(id_list),
+            "retmode": "json",
+        }
+        fetch_resp = requests.get(fetch_url, params=fetch_params, timeout=10)
+        if fetch_resp.status_code != 200:
+            return []
+
+        result = fetch_resp.json().get("result", {})
+        articles = []
+        for uid in id_list:
+            item = result.get(uid, {})
+            if not item:
+                continue
+
+            # Authors
+            authors = item.get("authors", [])
+            author_str = authors[0].get("name", "") if authors else "—"
+            if len(authors) > 1:
+                author_str += f" et al."
+
+            # Journal
+            journal = item.get("source", "—")
+
+            # Date
+            pub_date = item.get("pubdate", "—")
+
+            # Title
+            title = item.get("title", "—").rstrip(".")
+
+            articles.append({
+                "title": title,
+                "authors": author_str,
+                "journal": journal,
+                "date": pub_date,
+                "pmid": uid,
+                "url": f"https://pubmed.ncbi.nlm.nih.gov/{uid}/",
+                "source": "PubMed",
+                "query": query,
+            })
+
+        return articles
+
+    except Exception:
+        return []
+
+
+@st.cache_data(ttl=3600)
+def fetch_biorxiv_articles(query: str, max_results: int = 5) -> list:
+    """
+    Fetches recent bioRxiv preprints for a given query.
+    Returns a list of article dicts.
+    """
+    try:
+        # bioRxiv search API
+        url = f"https://api.biorxiv.org/details/biorxiv/2025-01-01/2026-12-31/0/json"
+        resp = requests.get(url, timeout=10)
+        if resp.status_code != 200:
+            return []
+
+        collection = resp.json().get("collection", [])
+        query_terms = query.lower().split()
+
+        # Filter by query terms in title or abstract
+        matches = []
+        for paper in collection:
+            title = paper.get("title", "").lower()
+            abstract = paper.get("abstract", "").lower()
+            combined = title + " " + abstract
+            if all(term in combined for term in query_terms):
+                matches.append(paper)
+            if len(matches) >= max_results:
+                break
+
+        articles = []
+        for paper in matches:
+            authors = paper.get("authors", "—")
+            if len(authors) > 50:
+                authors = authors[:50].rsplit(",", 1)[0] + " et al."
+
+            doi = paper.get("doi", "")
+            articles.append({
+                "title": paper.get("title", "—"),
+                "authors": authors,
+                "journal": "bioRxiv (preprint)",
+                "date": paper.get("date", "—"),
+                "pmid": doi,
+                "url": f"https://doi.org/{doi}" if doi else "https://biorxiv.org",
+                "source": "bioRxiv",
+                "query": query,
+            })
+
+        return articles
+
+    except Exception:
+        return []
+
+
+@st.cache_data(ttl=3600)
+def fetch_all_literature() -> pd.DataFrame:
+    """
+    Fetches and combines PubMed + bioRxiv articles across all queries.
+    Returns a deduplicated, sorted DataFrame.
+    """
+    all_articles = []
+
+    for query in LITERATURE_QUERIES:
+        pubmed = fetch_pubmed_articles(query, max_results=4)
+        biorxiv = fetch_biorxiv_articles(query, max_results=3)
+        all_articles.extend(pubmed)
+        all_articles.extend(biorxiv)
+
+    if not all_articles:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(all_articles)
+
+    # Deduplicate by title
+    df = df.drop_duplicates(subset=["title"])
+
+    # Sort by date descending
+    df = df.sort_values("date", ascending=False).reset_index(drop=True)
+
+    return df
