@@ -4,7 +4,6 @@ from data import (
     fetch_recent_trials,
     fetch_all_literature,
     LITERATURE_QUERIES,
-    debug_europepmc,
 )
 from synthesis import (
     synthesize_external_landscape,
@@ -207,25 +206,6 @@ tab1, tab2, tab3 = st.tabs([
 # ══════════════════════════════════════════════════════════════════════════════
 with tab1:
 
-    # TEMPORARY DEBUG
-    debug_result = debug_europepmc("molecular glue degrader")
-    st.json(debug_result)
-
-    st.markdown("""
-    <div class="proxima-card" style="border-left: 2px solid #1e3a4a;">
-        <div style="font-size:13px; color:#3ea8cf; font-weight:600;
-                    text-transform:uppercase; letter-spacing:1px;
-                    margin-bottom:8px;">EXTERNAL LANDSCAPE</div>
-        <div style="font-size:15px; color:#ffffff; font-weight:500;
-                    margin-bottom:6px;">What's moving in the ProMod space</div>
-        <div style="font-size:13px; color:#555; line-height:1.7;">
-            Live clinical trial data from ClinicalTrials.gov, mapped against
-            the competitive landscape. Framed around the decisions Proxima
-            needs to make — not just what exists, but what it means.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
     # ── Load trial data ────────────────────────────────────────────────────────
     with st.spinner("Pulling live data from ClinicalTrials.gov..."):
         trials_df = fetch_clinical_trials()
@@ -375,15 +355,15 @@ with tab1:
         </div>""", unsafe_allow_html=True)
 
     # ── Literature Signals ─────────────────────────────────────────────────────
-    st.markdown("<div class='section-label'>Scientific Literature Signals</div>",
+    st.markdown("<div class='section-label'>PubMed Literature Signals</div>",
                 unsafe_allow_html=True)
 
     st.markdown("""
     <div class="proxima-card" style="margin-bottom:16px;">
         <div style="font-size:13px; color:#555; line-height:1.7;">
-            Recent publications from PubMed and bioRxiv across key ProMod
-            search terms. Updated hourly — surfacing where scientific
-            momentum is building before it shows up in the clinic.
+            Recent publications from PubMed across key ProMod search terms.
+            Updated hourly — surfacing where scientific momentum is building
+            before it shows up in the clinic.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -392,18 +372,10 @@ with tab1:
         lit_df = fetch_all_literature()
 
     if not lit_df.empty:
-        lf1, lf2 = st.columns([1, 2])
-        with lf1:
-            source_filter = st.selectbox(
-                "Source", ["All", "PubMed", "bioRxiv"], key="lit_source")
-        with lf2:
-            query_filter = st.selectbox(
-                "Topic", ["All"] + LITERATURE_QUERIES, key="lit_query")
+        query_filter = st.selectbox(
+            "Topic", ["All"] + LITERATURE_QUERIES, key="lit_query")
 
         filtered_lit = lit_df.copy()
-        if source_filter != "All":
-            filtered_lit = filtered_lit[
-                filtered_lit["source"] == source_filter]
         if query_filter != "All":
             filtered_lit = filtered_lit[
                 filtered_lit["query"] == query_filter]
@@ -1315,7 +1287,7 @@ with tab3:
                             letter-spacing:1.5px; margin-bottom:12px;
                             font-weight:600;">INTELLIGENCE & PLANNING</div>
                 <div style="font-size:13px; color:#666; line-height:2;">
-                    Auto-refreshing signals from PubMed + bioRxiv<br>
+                    Auto-refreshing signals from bioRxiv<br>
                     Headcount planning tied to program stage gates<br>
                     CRO / CMO vendor tracker for IND-readiness<br>
                     Internal vs. partner decision scoring rubric<br>
@@ -1326,4 +1298,3 @@ with tab3:
     </div>""", unsafe_allow_html=True)
 
 
-    
