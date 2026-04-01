@@ -711,8 +711,18 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
 
-    # ── Clinical Trials (collapsed) ────────────────────────────────────────────
-    with st.expander("📋  View full clinical trial data", expanded=False):
+    # ── Clinical Trials (toggle) ───────────────────────────────────────────────
+    if "show_trials" not in st.session_state:
+        st.session_state.show_trials = False
+
+    if st.button(
+        "Hide clinical trial data ↑" if st.session_state.show_trials
+        else "View full clinical trial data ↓",
+        key="trials_toggle"
+    ):
+        st.session_state.show_trials = not st.session_state.show_trials
+
+    if st.session_state.show_trials:
         if not trials_df.empty:
             f1, f2, f3 = st.columns([1, 1, 2])
             with f1:
