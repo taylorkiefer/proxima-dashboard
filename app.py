@@ -191,28 +191,6 @@ st.markdown("""
         color: #aaa !important;
         background: transparent !important;
     }
-    /* Expander styling */
-    .streamlit-expanderHeader {
-        background: #0a0a0a !important;
-        border: 1px solid #1e1e1e !important;
-        border-radius: 10px !important;
-        color: #888 !important;
-        font-size: 13px !important;
-        font-weight: 500 !important;
-    }
-    .streamlit-expanderHeader:hover {
-        border-color: #333 !important;
-        color: #ccc !important;
-    }
-    .streamlit-expanderContent {
-        background: #0a0a0a !important;
-        border: 1px solid #1e1e1e !important;
-        border-top: none !important;
-        border-radius: 0 0 10px 10px !important;
-    }
-    /* Hide copy button and other default icons */
-    button[title="Copy to clipboard"] { display: none !important; }
-    .arr { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -249,6 +227,12 @@ st.markdown(f"""
     </div>
 </div>
 """, unsafe_allow_html=True)
+
+# ── Session state initialization ───────────────────────────────────────────────
+if "show_trials" not in st.session_state:
+    st.session_state.show_trials = False
+if "ext_synthesis" not in st.session_state:
+    st.session_state.ext_synthesis = None
 
 # ── Tabs ───────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3 = st.tabs([
@@ -380,7 +364,6 @@ with tab1:
         def score_bar(score, max_score=3):
             return ("█" * score) + ("░" * (max_score - score))
 
-        # Card header
         st.markdown(f"""
         <div class="card" style="border-left:2px solid {priority_color};
                                   margin-bottom:4px;">
@@ -406,7 +389,6 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
 
-        # Score columns with inline toggles
         trial_key = f"trials_{target_class.replace(' ','_').replace('/','_')}"
         comp_key  = f"comp_{target_class.replace(' ','_').replace('/','_')}"
         if trial_key not in st.session_state:
@@ -466,7 +448,6 @@ with tab1:
                 <div class="field-value">Combined signal strength</div>
             </div>""", unsafe_allow_html=True)
 
-        # Expandable detail panels
         target_trial_map = {
             "E3 Ligase / Molecular Glue":
                 trials_df[trials_df["Modality"] == "Molecular Glue"][
@@ -511,10 +492,10 @@ with tab1:
             "Viral / Infectious Disease": [],
         }
 
-        show_trials      = st.session_state.get(trial_key, False)
-        show_comp        = st.session_state.get(comp_key, False)
-        relevant_trials  = target_trial_map.get(target_class, pd.DataFrame())
-        relevant_comps   = competitor_map.get(target_class, [])
+        show_trials     = st.session_state.get(trial_key, False)
+        show_comp       = st.session_state.get(comp_key, False)
+        relevant_trials = target_trial_map.get(target_class, pd.DataFrame())
+        relevant_comps  = competitor_map.get(target_class, [])
 
         if show_trials or show_comp:
             detail1, detail2 = st.columns(2)
@@ -569,7 +550,6 @@ with tab1:
                             No known competitors — this space is open.
                         </div>""", unsafe_allow_html=True)
 
-        # Coverage + notes
         cv1, cv2 = st.columns(2)
         with cv1:
             st.markdown(f"""
@@ -938,24 +918,9 @@ with tab1:
                                    marker_line_width=2)
                 st.plotly_chart(fig2, use_container_width=True)
 
-    # ── AI Synthesis ───────────────────────────────────────────────────────────
-    st.markdown("<div class='section-label'>AI Strategic Synthesis</div>",
-                unsafe_allow_html=True)
-    st.markdown("""
-    <div class="card" style="margin-bottom:16px;">
-        <div style="font-size:13px; color:#777; line-height:1.8;">
-            Generates a live strategic memo from the perspective of a Proxima
-            Strat/Ops team member — grounded in the current data, specific
-            and opinionated, written for leadership.
-        </div>
-    </div>""", unsafe_allow_html=True)
-
     # ── AI Synthesis (auto-loads) ──────────────────────────────────────────────
     st.markdown("<div class='section-label'>AI Strategic Synthesis</div>",
                 unsafe_allow_html=True)
-
-    if "ext_synthesis" not in st.session_state:
-        st.session_state.ext_synthesis = None
 
     if st.session_state.ext_synthesis is None and not trials_df.empty:
         with st.spinner("Generating strategic read..."):
@@ -992,10 +957,10 @@ with tab1:
                     <div style="font-size:14px; color:#cccccc;
                                 line-height:1.8;">{content.strip()}</div>
                 </div>""", unsafe_allow_html=True)
-
         if st.button("Regenerate ↺", key="regen_syn1"):
             st.session_state.ext_synthesis = None
             st.rerun()
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 2 — PARTNERSHIP PORTFOLIO
@@ -1284,9 +1249,9 @@ with tab2:
                 label, _, content = line.partition(":")
                 accent = {
                     "PORTFOLIO HEALTH": "#3ecf8e",
-                    "BIGGEST RISK":     "#cf4f4f",
+                    "BIGGEST RISK":        "#cf4f4f",
                     "BIGGEST OPPORTUNITY": "#3ea8cf",
-                    "RECOMMENDATION":   "#ffffff",
+                    "RECOMMENDATION":      "#ffffff",
                 }.get(label.strip(), "#888")
                 st.markdown(f"""
                 <div style="margin-bottom:12px; padding:14px 18px;
