@@ -444,6 +444,127 @@ with tab1:
                 <div class="field-label">ACTIVE PARTNER</div>
                 <div class="field-value">{row["Proxima Partner"]}</div>
             </div>""", unsafe_allow_html=True)
+            
+        # ── Interactive detail panels ──────────────────────────────────────
+        # Map target class to relevant trials
+        target_trial_map = {
+            "E3 Ligase / Molecular Glue": 
+                trials_df[trials_df["Modality"] == "Molecular Glue"][
+                    ["Title","Sponsor","Phase","Indication"]
+                ].head(5) if not trials_df.empty else pd.DataFrame(),
+            "BRD / Transcription Factor":
+                trials_df[trials_df["Modality"] == "PROTAC"][
+                    ["Title","Sponsor","Phase","Indication"]
+                ].head(5) if not trials_df.empty else pd.DataFrame(),
+            "RIPTAC Targets":
+                trials_df[trials_df["Modality"] == "RIPTAC"][
+                    ["Title","Sponsor","Phase","Indication"]
+                ].head(5) if not trials_df.empty else pd.DataFrame(),
+        }
+
+        competitor_map = {
+            "E3 Ligase / Molecular Glue": [
+                "Monte Rosa (QuEEN platform, Phase 1)",
+                "Kymera Therapeutics (expanding to glues, Phase 2)",
+                "Revolution Medicines (daraxonrasib, Phase 3)",
+                "C4 Therapeutics (TORPEDO platform, Phase 1/2)",
+            ],
+            "BRD / Transcription Factor": [
+                "Arvinas (BRD-targeting PROTACs, Phase 3)",
+                "Kymera Therapeutics (BRD degraders, Phase 2)",
+                "Nurix Therapeutics (DEL platform, Phase 2)",
+            ],
+            "Kinase / Scaffolding Protein": [
+                "Kymera (adjacent kinase programs)",
+            ],
+            "RIPTAC Targets": [
+                "Halda Therapeutics (active Proxima partner)",
+            ],
+            "Immune Modulators": [
+                "Nurix Therapeutics (immunology focus, Phase 2)",
+                "Kymera Therapeutics (immunology programs, Phase 2)",
+            ],
+            "CNS Targets": [],
+            "Cardiovascular Targets": [
+                "Nurix (adjacent degrader programs)",
+            ],
+            "Viral / Infectious Disease": [],
+        }
+
+        target_class = row["Target Class"]
+        relevant_trials = target_trial_map.get(target_class, pd.DataFrame())
+        relevant_competitors = competitor_map.get(target_class, [])
+
+        detail_col1, detail_col2 = st.columns(2)
+
+        with detail_col1:
+            trial_count = row["Clinical Trials"]
+            toggle_key = f"trials_{target_class.replace(' ','_').replace('/','_')}"
+            if toggle_key not in st.session_state:
+                st.session_state[toggle_key] = False
+
+            if st.button(
+                f"▾ {trial_count} active trials" if st.session_state[toggle_key]
+                else f"▸ {trial_count} active trials",
+                key=f"btn_{toggle_key}"
+            ):
+                st.session_state[toggle_key] = not st.session_state[toggle_key]
+
+            if st.session_state[toggle_key]:
+                if not relevant_trials.empty:
+                    for _, t in relevant_trials.iterrows():
+                        st.markdown(f"""
+                        <div style="background:#050505; border:1px solid #151515;
+                                    border-radius:6px; padding:10px 14px;
+                                    margin-bottom:6px;">
+                            <div style="font-size:12px; color:#ccc;
+                                        margin-bottom:3px; line-height:1.5;">
+                                {t['Title'][:80]}{'...' if len(t['Title'])>80 else ''}
+                            </div>
+                            <div style="display:flex; gap:12px;">
+                                <span style="font-size:11px; color:#555;">
+                                    {t['Sponsor'][:30]}
+                                </span>
+                                <span style="font-size:11px; color:#3ea8cf;">
+                                    {t['Phase']}
+                                </span>
+                            </div>
+                        </div>""", unsafe_allow_html=True)
+                else:
+                    st.markdown("""
+                    <div style="font-size:12px; color:#444; padding:8px 0;">
+                        No matching trials in current dataset for this
+                        specific modality.
+                    </div>""", unsafe_allow_html=True)
+
+        with detail_col2:
+            comp_count = row["Competitors"]
+            comp_key = f"comp_{target_class.replace(' ','_').replace('/','_')}"
+            if comp_key not in st.session_state:
+                st.session_state[comp_key] = False
+
+            if st.button(
+                f"▾ {comp_count} known competitors" if st.session_state[comp_key]
+                else f"▸ {comp_count} known competitors",
+                key=f"btn_{comp_key}"
+            ):
+                st.session_state[comp_key] = not st.session_state[comp_key]
+
+            if st.session_state[comp_key]:
+                if relevant_competitors:
+                    for c in relevant_competitors:
+                        st.markdown(f"""
+                        <div style="background:#050505; border:1px solid #151515;
+                                    border-radius:6px; padding:10px 14px;
+                                    margin-bottom:6px;">
+                            <div style="font-size:12px; color:#ccc;
+                                        line-height:1.5;">{c}</div>
+                        </div>""", unsafe_allow_html=True)
+                else:
+                    st.markdown("""
+                    <div style="font-size:12px; color:#3ecf8e; padding:8px 0;">
+                        No known competitors — this space is open.
+                    </div>""", unsafe_allow_html=True)
 
         st.markdown(f"""
         <div style="font-size:13px; color:#888; line-height:1.8;
@@ -814,13 +935,23 @@ with tab1:
         </div>
     </div>""", unsafe_allow_html=True)
 
-    if st.button("Generate External Landscape Synthesis →", key="syn1"):
-        with st.spinner("Analyzing..."):
-            insight = synthesize_external_landscape(trials_df)
-        lines = insight.strip().split("\n\n")
+    # ── AI Synthesis (auto-loads) ──────────────────────────────────────────────
+    st.markdown("<div class='section-label'>AI Strategic Synthesis</div>",
+                unsafe_allow_html=True)
+
+    if "ext_synthesis" not in st.session_state:
+        st.session_state.ext_synthesis = None
+
+    if st.session_state.ext_synthesis is None and not trials_df.empty:
+        with st.spinner("Generating strategic read..."):
+            st.session_state.ext_synthesis = synthesize_external_landscape(
+                trials_df)
+
+    if st.session_state.ext_synthesis:
+        lines = st.session_state.ext_synthesis.strip().split("\n\n")
         st.markdown("""
         <div class="card" style="border-left:2px solid #3ea8cf;
-                                  margin-top:12px; margin-bottom:8px;">
+                                  margin-bottom:8px;">
             <div style="font-size:10px; color:#3ea8cf; font-weight:700;
                         letter-spacing:2px; text-transform:uppercase;">
                 STRATEGIC READ · EXTERNAL LANDSCAPE
@@ -847,6 +978,9 @@ with tab1:
                                 line-height:1.8;">{content.strip()}</div>
                 </div>""", unsafe_allow_html=True)
 
+        if st.button("Regenerate ↺", key="regen_syn1"):
+            st.session_state.ext_synthesis = None
+            st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 2 — PARTNERSHIP PORTFOLIO
