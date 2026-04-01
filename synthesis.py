@@ -14,6 +14,59 @@ def get_client():
         return None
     return anthropic.Anthropic(api_key=api_key)
 
+def synthesize_resource_allocation(programs: list) -> str:
+    client = get_client()
+    if not client:
+        return "API key not configured."
+
+    program_summary = ""
+    for p in programs:
+        program_summary += (
+            f"- {p['Program']} ({p['Modality']}, {p['Indication']}): "
+            f"{p['Stage']}, {p['FTEs Allocated']} FTEs, "
+            f"owned by {p['Internal vs Partner']}, "
+            f"competitive pressure: {p['Competitive Pressure']}, "
+            f"NeoLink coverage: {p['NeoLink Coverage']}\n"
+        )
+
+    total_ftes = sum(p["FTEs Allocated"] for p in programs)
+    internal_ftes = sum(
+        p["FTEs Allocated"] for p in programs
+        if p["Internal vs Partner"] == "Internal"
+    )
+    partner_ftes = total_ftes - internal_ftes
+
+    prompt = (
+        "You are a senior Strategy & Operations team member at Proxima. "
+        "Review how resources are allocated and write a strategic read "
+        "in exactly this format — no headers, no markdown, "
+        "no bullet points:\n\n"
+        f"Portfolio:\n{program_summary}\n"
+        f"FTE split: {internal_ftes} internal "
+        f"({round(internal_ftes/total_ftes*100)}%), "
+        f"{partner_ftes} partner "
+        f"({round(partner_ftes/total_ftes*100)}%)\n\n"
+        "ALLOCATION READ: [One sentence on whether the current "
+        "resource allocation makes sense given Proxima's stage.]\n\n"
+        "UNDERWEIGHTED: [One sentence on where resources are too "
+        "light relative to the opportunity.]\n\n"
+        "OVEREXPOSED: [One sentence on where competitive pressure "
+        "makes the current allocation worth scrutinizing.]\n\n"
+        "RECOMMENDATION: [2-3 sentences on the one hiring or "
+        "reallocation decision leadership should make. Specific.]\n\n"
+        "Be direct. Write like you're briefing the CEO. No hedging."
+    )
+
+    try:
+        response = client.messages.create(
+            model="claude-opus-4-5",
+            max_tokens=400,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response.content[0].text
+    except Exception as e:
+        return f"Synthesis unavailable: {str(e)}"
+
 
 def synthesize_external_landscape(trials_df: pd.DataFrame) -> str:
     client = get_client()
@@ -85,41 +138,34 @@ def synthesize_partnership_portfolio(partnerships: list) -> str:
     partner_summary = ""
     for p in partnerships:
         partner_summary += (
-            f"- {p['Partner']}: {p['Programs']} programs, most advanced at "
-            f"{p['Most Advanced']}, next milestone {p['Next Milestone']} "
+            f"- {p['Partner']}: {p['Programs']} programs, "
+            f"most advanced at {p['Most Advanced']}, "
+            f"next milestone {p['Next Milestone']} "
             f"in {p['Milestone Date']} (~{p['Days Until']} days), "
-            f"risk level: {p['Risk']}\n"
+            f"risk: {p['Risk']}\n"
         )
 
     prompt = (
-        "You are a senior Strategy & Operations team member at Proxima, "
-        "an AI-native biotech company with active partnerships with J&J, "
-        "BMS, Blueprint/Sanofi, Halda Therapeutics, and Boehringer Ingelheim.\n\n"
-        f"Current partnership portfolio status:\n{partner_summary}\n\n"
-        "Additional context:\n"
-        "- Blueprint Medicines was recently acquired by Sanofi — "
-        "post-acquisition reprioritization is a real risk\n"
-        "- The J&J program is Proxima's first approaching IND, expected 2026\n"
-        "- Halda is Proxima's deepest technical integration — Proxima is "
-        "their entire computational backbone\n"
-        "- Multiple milestones are due in the next 60-120 days\n\n"
-        "Write a 3-4 paragraph strategic assessment of the partnership "
-        "portfolio. Focus on:\n"
-        "1. What the portfolio looks like from a risk and concentration "
-        "standpoint\n"
-        "2. Which partnerships deserve the most operational attention in "
-        "the next 90 days and why\n"
-        "3. One thing about the portfolio structure that should prompt a "
-        "conversation at the leadership level\n\n"
-        "Write in first person plural as if you are on the Proxima "
-        "Strat/Ops team. Be direct and specific. No bullet points. "
-        "Write like an internal memo to the CEO."
+        "You are a senior Strategy & Operations team member at Proxima. "
+        "Review the partnership portfolio and write a strategic read "
+        "in exactly this format — no headers, no markdown, "
+        "no bullet points:\n\n"
+        f"Portfolio status:\n{partner_summary}\n\n"
+        "PORTFOLIO HEALTH: [One sentence on the overall state of "
+        "the partnership portfolio right now.]\n\n"
+        "BIGGEST RISK: [One sentence on the single most important "
+        "risk in the next 90 days.]\n\n"
+        "BIGGEST OPPORTUNITY: [One sentence on what this portfolio "
+        "unlocks if milestones hit.]\n\n"
+        "RECOMMENDATION: [2-3 sentences on the one operational "
+        "priority leadership should act on this week. Specific.]\n\n"
+        "Be direct. Write like you're briefing the CEO. No hedging."
     )
 
     try:
         response = client.messages.create(
             model="claude-opus-4-5",
-            max_tokens=800,
+            max_tokens=400,
             messages=[{"role": "user", "content": prompt}]
         )
         return response.content[0].text
@@ -127,62 +173,50 @@ def synthesize_partnership_portfolio(partnerships: list) -> str:
         return f"Synthesis unavailable: {str(e)}"
 
 
-def synthesize_resource_allocation(programs: list) -> str:
+def synthesize_external_landscape(trials_df: pd.DataFrame) -> str:
     client = get_client()
     if not client:
         return "API key not configured."
 
-    program_summary = ""
-    for p in programs:
-        program_summary += (
-            f"- {p['Program']} ({p['Modality']}, {p['Indication']}): "
-            f"stage {p['Stage']}, {p['FTEs Allocated']} FTEs, "
-            f"owned by {p['Internal vs Partner']}, "
-            f"competitive pressure: {p['Competitive Pressure']}, "
-            f"NeoLink coverage: {p['NeoLink Coverage']}\n"
+    if trials_df.empty:
+        trial_summary = "No trial data available."
+    else:
+        phase_counts = trials_df["Phase"].value_counts().to_dict()
+        modality_counts = trials_df["Modality"].value_counts().to_dict()
+        top_sponsors = trials_df["Sponsor"].value_counts().head(5).to_dict()
+        trial_summary = (
+            f"Total active ProMod trials: {len(trials_df)}\n"
+            f"Trials by phase: {phase_counts}\n"
+            f"Trials by modality: {modality_counts}\n"
+            f"Top sponsors by trial count: {top_sponsors}"
         )
 
-    total_ftes = sum(p["FTEs Allocated"] for p in programs)
-    internal_ftes = sum(
-        p["FTEs Allocated"] for p in programs
-        if p["Internal vs Partner"] == "Internal"
-    )
-    partner_ftes = total_ftes - internal_ftes
-
     prompt = (
-        "You are a senior Strategy & Operations team member at Proxima. "
-        "You are reviewing how the company's scientific resources are "
-        "allocated across its internal and partner programs.\n\n"
-        f"Current portfolio:\n{program_summary}\n\n"
-        f"Resource summary:\n"
-        f"- Total FTEs allocated: {total_ftes}\n"
-        f"- FTEs on internal programs: {internal_ftes} "
-        f"({round(internal_ftes/total_ftes*100)}% of total)\n"
-        f"- FTEs on partner programs: {partner_ftes} "
-        f"({round(partner_ftes/total_ftes*100)}% of total)\n\n"
-        "Proxima's strategic context:\n"
-        "- Neo-1's strongest advantage is in ternary complex prediction\n"
-        "- NeoLink covers ~70% of the human proteome\n"
-        "- Just raised $80M and is actively hiring\n"
-        "- First program approaching IND in 2026 (J&J partnership)\n"
-        "- RIPTAC space has minimal external competition\n"
-        "- Immunology ProMod space is largely uncrowded\n\n"
-        "Write a 3-4 paragraph strategic assessment of how Proxima is "
-        "allocating its resources. Focus on:\n"
-        "1. Whether the current internal vs. partner FTE split makes sense "
-        "given Proxima's stage and strategy\n"
-        "2. Where resources appear underweighted relative to the opportunity\n"
-        "3. One specific reallocation or hiring decision you would recommend "
-        "bringing to leadership\n\n"
-        "Write in first person plural as if you are on the Proxima "
-        "Strat/Ops team. Be direct, opinionated, and specific. "
-        "No bullet points. Write like an internal strategy memo."
+        "You are a senior Strategy & Operations team member at Proxima, "
+        "an AI-native biotech pioneering proximity-based therapeutics. "
+        "Proxima's assets: Neo-1 (unified structure prediction + molecular "
+        "generation, strongest on ternary complexes), NeoLink (proteome-wide "
+        "XLMS structural data platform), active partnerships with J&J, BMS, "
+        "Blueprint/Sanofi, Halda, and BI. $80M seed closed January 2026.\n\n"
+        f"Current external landscape data:\n{trial_summary}\n\n"
+        "Write a strategic read in exactly this format — no headers, "
+        "no markdown, no bullet points:\n\n"
+        "SIGNAL: [One sentence on the single most important thing the "
+        "clinical data is telling us right now.]\n\n"
+        "WHITESPACE: [One sentence on where the biggest opportunity is "
+        "that competitors are missing.]\n\n"
+        "PROXIMA EDGE: [One sentence on why Proxima is specifically "
+        "positioned to win in that whitespace.]\n\n"
+        "RECOMMENDATION: [2-3 sentences max on the one thing Proxima "
+        "should do differently based on this data. Specific and actionable.]\n\n"
+        "Be direct. No hedging. Write like you're briefing the CEO "
+        "before a board meeting, not writing a report."
     )
 
     try:
         response = client.messages.create(
             model="claude-opus-4-5",
-            max_tokens=800,
+            max_tokens=400,
             messages=[{"role": "user", "content": prompt}]
         )
         return response.content[0].text

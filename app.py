@@ -176,6 +176,28 @@ st.markdown("""
         color: #aaaaaa;
         margin-top: 3px;
     }
+    /* Expander styling */
+    .streamlit-expanderHeader {
+        background: #0a0a0a !important;
+        border: 1px solid #1e1e1e !important;
+        border-radius: 10px !important;
+        color: #888 !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+    }
+    .streamlit-expanderHeader:hover {
+        border-color: #333 !important;
+        color: #ccc !important;
+    }
+    .streamlit-expanderContent {
+        background: #0a0a0a !important;
+        border: 1px solid #1e1e1e !important;
+        border-top: none !important;
+        border-radius: 0 0 10px 10px !important;
+    }
+    /* Hide copy button and other default icons */
+    button[title="Copy to clipboard"] { display: none !important; }
+    .arr { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
