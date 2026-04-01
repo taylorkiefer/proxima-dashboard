@@ -427,17 +427,18 @@ with tab1:
             "Low":    "<span class='badge badge-red'>NeoLink: Low</span>",
         }.get(row["NeoLink Coverage"], "")
 
-        # Score bar helper
         def score_bar(score, max_score=3):
             filled = "█" * score
             empty  = "░" * (max_score - score)
             return filled + empty
 
+        # ── Card header ────────────────────────────────────────────────────
         st.markdown(f"""
         <div class="proxima-card"
-             style="border-left:2px solid {priority_color};">
+             style="border-left:2px solid {priority_color};
+                    margin-bottom:4px;">
             <div style="display:flex; justify-content:space-between;
-                        align-items:flex-start; margin-bottom:14px;">
+                        align-items:flex-start;">
                 <div>
                     <div style="font-size:16px; font-weight:700;
                                 color:#fff; margin-bottom:4px;">
@@ -455,81 +456,92 @@ with tab1:
                                  color:{priority_color};">{priority}</span>
                 </div>
             </div>
-
-            <div style="display:grid; grid-template-columns:repeat(3,1fr);
-                        gap:16px; margin-bottom:14px;">
-                <div>
-                    <div style="font-size:10px; color:#444;
-                                text-transform:uppercase;
-                                letter-spacing:1px; margin-bottom:6px;">
-                        CLINICAL VALIDATION
-                    </div>
-                    <div style="font-size:16px; color:#3ea8cf;
-                                font-family:monospace; letter-spacing:2px;">
-                        {score_bar(row["Validation Score"])}
-                    </div>
-                    <div style="font-size:12px; color:#555; margin-top:4px;">
-                        {row["Clinical Trials"]} active trials
-                    </div>
-                </div>
-                <div>
-                    <div style="font-size:10px; color:#444;
-                                text-transform:uppercase;
-                                letter-spacing:1px; margin-bottom:6px;">
-                        COMPETITIVE WHITESPACE
-                    </div>
-                    <div style="font-size:16px; color:#3ecf8e;
-                                font-family:monospace; letter-spacing:2px;">
-                        {score_bar(row["Whitespace Score"])}
-                    </div>
-                    <div style="font-size:12px; color:#555; margin-top:4px;">
-                        {row["Competitors"]} known competitors
-                    </div>
-                </div>
-                <div>
-                    <div style="font-size:10px; color:#444;
-                                text-transform:uppercase;
-                                letter-spacing:1px; margin-bottom:6px;">
-                        OPPORTUNITY SCORE
-                    </div>
-                    <div style="font-size:24px; font-weight:700;
-                                color:#fff;">
-                        {row["Opportunity Score"]}<span style="font-size:13px;
-                        color:#444;">/9</span>
-                    </div>
-                    <div style="font-size:12px; color:#555; margin-top:4px;">
-                        Combined signal strength
-                    </div>
-                </div>
-            </div>
-
-            <div style="display:grid; grid-template-columns:1fr 1fr;
-                        gap:16px; margin-bottom:12px;">
-                <div>
-                    <div style="font-size:10px; color:#444;
-                                text-transform:uppercase;
-                                letter-spacing:1px;">PROXIMA PROGRAM</div>
-                    <div style="font-size:13px; color:#888; margin-top:3px;">
-                        {row["Proxima Program"]}
-                    </div>
-                </div>
-                <div>
-                    <div style="font-size:10px; color:#444;
-                                text-transform:uppercase;
-                                letter-spacing:1px;">ACTIVE PARTNER</div>
-                    <div style="font-size:13px; color:#888; margin-top:3px;">
-                        {row["Proxima Partner"]}
-                    </div>
-                </div>
-            </div>
-
-            <div style="font-size:13px; color:#555; line-height:1.7;
-                        border-top:1px solid #111; padding-top:12px;">
-                {row["Whitespace Notes"]}
-            </div>
         </div>
         """, unsafe_allow_html=True)
 
+        # ── Score columns ──────────────────────────────────────────────────
+        sc1, sc2, sc3 = st.columns(3)
+        with sc1:
+            st.markdown(f"""
+            <div style="padding:12px 0;">
+                <div style="font-size:10px; color:#444;
+                            text-transform:uppercase;
+                            letter-spacing:1px; margin-bottom:6px;">
+                    CLINICAL VALIDATION
+                </div>
+                <div style="font-size:16px; color:#3ea8cf;
+                            font-family:monospace; letter-spacing:2px;">
+                    {score_bar(row["Validation Score"])}
+                </div>
+                <div style="font-size:12px; color:#555; margin-top:4px;">
+                    {row["Clinical Trials"]} active trials
+                </div>
+            </div>""", unsafe_allow_html=True)
+        with sc2:
+            st.markdown(f"""
+            <div style="padding:12px 0;">
+                <div style="font-size:10px; color:#444;
+                            text-transform:uppercase;
+                            letter-spacing:1px; margin-bottom:6px;">
+                    COMPETITIVE WHITESPACE
+                </div>
+                <div style="font-size:16px; color:#3ecf8e;
+                            font-family:monospace; letter-spacing:2px;">
+                    {score_bar(row["Whitespace Score"])}
+                </div>
+                <div style="font-size:12px; color:#555; margin-top:4px;">
+                    {row["Competitors"]} known competitors
+                </div>
+            </div>""", unsafe_allow_html=True)
+        with sc3:
+            st.markdown(f"""
+            <div style="padding:12px 0;">
+                <div style="font-size:10px; color:#444;
+                            text-transform:uppercase;
+                            letter-spacing:1px; margin-bottom:6px;">
+                    OPPORTUNITY SCORE
+                </div>
+                <div style="font-size:24px; font-weight:700; color:#fff;">
+                    {row["Opportunity Score"]}
+                    <span style="font-size:13px; color:#444;">/9</span>
+                </div>
+                <div style="font-size:12px; color:#555; margin-top:4px;">
+                    Combined signal strength
+                </div>
+            </div>""", unsafe_allow_html=True)
+
+        # ── Coverage row ───────────────────────────────────────────────────
+        cv1, cv2 = st.columns(2)
+        with cv1:
+            st.markdown(f"""
+            <div style="padding:8px 0;">
+                <div style="font-size:10px; color:#444;
+                            text-transform:uppercase; letter-spacing:1px;">
+                    PROXIMA PROGRAM</div>
+                <div style="font-size:13px; color:#888; margin-top:3px;">
+                    {row["Proxima Program"]}
+                </div>
+            </div>""", unsafe_allow_html=True)
+        with cv2:
+            st.markdown(f"""
+            <div style="padding:8px 0;">
+                <div style="font-size:10px; color:#444;
+                            text-transform:uppercase; letter-spacing:1px;">
+                    ACTIVE PARTNER</div>
+                <div style="font-size:13px; color:#888; margin-top:3px;">
+                    {row["Proxima Partner"]}
+                </div>
+            </div>""", unsafe_allow_html=True)
+
+        # ── Notes ──────────────────────────────────────────────────────────
+        st.markdown(f"""
+        <div style="font-size:13px; color:#555; line-height:1.7;
+                    border-top:1px solid #111; padding-top:12px;
+                    margin-bottom:24px;">
+            {row["Whitespace Notes"]}
+        </div>
+        """, unsafe_allow_html=True)
+        
     # ── Whitespace summary chart ───────────────────────────────────────────────
     st.markdown("<div class='section-label'>Opportunity Matrix</div>",
                 unsafe_allow_html=True)
