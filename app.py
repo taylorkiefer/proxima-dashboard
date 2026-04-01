@@ -1,5 +1,3 @@
-
-
 import streamlit as st
 from data import (
     fetch_clinical_trials,
@@ -245,12 +243,10 @@ with tab1:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Load data ──────────────────────────────────────────────────────────────
     with st.spinner("Pulling live data from ClinicalTrials.gov..."):
         trials_df = fetch_clinical_trials()
         recent_df = fetch_recent_trials(days=365)
 
-    # ── Metrics ────────────────────────────────────────────────────────────────
     st.markdown("<div class='section-label'>Live Market Snapshot</div>",
                 unsafe_allow_html=True)
 
@@ -298,7 +294,6 @@ with tab1:
 
     scorecard_df = build_whitespace_scorecard(trials_df)
 
-    # Priority legend
     leg1, leg2, leg3, leg4 = st.columns(4)
     for col, icon, label, desc, color in zip(
         [leg1, leg2, leg3, leg4],
@@ -323,7 +318,6 @@ with tab1:
     st.markdown("<div style='margin-top:20px;'></div>",
                 unsafe_allow_html=True)
 
-    # Scorecard cards
     for _, row in scorecard_df.iterrows():
         priority = row["Strategic Priority"]
         priority_color = {
@@ -348,7 +342,6 @@ with tab1:
         def score_bar(score, max_score=3):
             return ("█" * score) + ("░" * (max_score - score))
 
-        # Card header
         st.markdown(f"""
         <div class="card" style="border-left:2px solid {priority_color};
                                   margin-bottom:4px;">
@@ -374,7 +367,6 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
 
-        # Score columns
         sc1, sc2, sc3 = st.columns(3)
         with sc1:
             st.markdown(f"""
@@ -386,7 +378,8 @@ with tab1:
                             margin:8px 0 4px 0;">
                     {score_bar(row["Validation Score"])}
                 </div>
-                <div class="field-value">{row["Clinical Trials"]} active trials
+                <div class="field-value">
+                    {row["Clinical Trials"]} active trials
                 </div>
             </div>""", unsafe_allow_html=True)
         with sc2:
@@ -399,7 +392,8 @@ with tab1:
                             margin:8px 0 4px 0;">
                     {score_bar(row["Whitespace Score"])}
                 </div>
-                <div class="field-value">{row["Competitors"]} known competitors
+                <div class="field-value">
+                    {row["Competitors"]} known competitors
                 </div>
             </div>""", unsafe_allow_html=True)
         with sc3:
@@ -415,7 +409,6 @@ with tab1:
                 <div class="field-value">Combined signal strength</div>
             </div>""", unsafe_allow_html=True)
 
-        # Coverage + notes
         cv1, cv2 = st.columns(2)
         with cv1:
             st.markdown(f"""
@@ -792,18 +785,35 @@ with tab1:
     if st.button("Generate External Landscape Synthesis →", key="syn1"):
         with st.spinner("Analyzing..."):
             insight = synthesize_external_landscape(trials_df)
-        st.markdown(f"""
+        lines = insight.strip().split("\n\n")
+        st.markdown("""
         <div class="card" style="border-left:2px solid #3ea8cf;
-                                  margin-top:12px;">
+                                  margin-top:12px; margin-bottom:8px;">
             <div style="font-size:10px; color:#3ea8cf; font-weight:700;
-                        letter-spacing:2px; text-transform:uppercase;
-                        margin-bottom:14px;">
-                AI SYNTHESIS · EXTERNAL LANDSCAPE
-            </div>
-            <div class="insight-card">
-                {insight.replace(chr(10), '<br><br>')}
+                        letter-spacing:2px; text-transform:uppercase;">
+                STRATEGIC READ · EXTERNAL LANDSCAPE
             </div>
         </div>""", unsafe_allow_html=True)
+        for line in lines:
+            if ":" in line:
+                label, _, content = line.partition(":")
+                accent = {
+                    "SIGNAL": "#3ea8cf",
+                    "WHITESPACE": "#3ecf8e",
+                    "PROXIMA EDGE": "#d4a017",
+                    "RECOMMENDATION": "#ffffff",
+                }.get(label.strip(), "#888")
+                st.markdown(f"""
+                <div style="margin-bottom:12px; padding:14px 18px;
+                            background:#050505; border-radius:8px;
+                            border-left:2px solid {accent};">
+                    <div style="font-size:10px; color:{accent};
+                                font-weight:700; letter-spacing:1.5px;
+                                text-transform:uppercase;
+                                margin-bottom:6px;">{label.strip()}</div>
+                    <div style="font-size:14px; color:#cccccc;
+                                line-height:1.8;">{content.strip()}</div>
+                </div>""", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -817,8 +827,7 @@ with tab2:
                     text-transform:uppercase; letter-spacing:1.5px;
                     margin-bottom:8px;">PARTNERSHIP PORTFOLIO</div>
         <div style="font-size:15px; color:#ffffff; font-weight:600;
-                    margin-bottom:6px;">
-            All active collaborations in one place
+                    margin-bottom:6px;">All active collaborations in one place
         </div>
         <div style="font-size:13px; color:#777; line-height:1.8;">
             Milestones, data obligations, and decision checkpoints so nothing
@@ -911,7 +920,6 @@ with tab2:
         },
     ]
 
-    # ── Portfolio metrics ──────────────────────────────────────────────────────
     st.markdown("<div class='section-label'>Portfolio Overview</div>",
                 unsafe_allow_html=True)
 
@@ -936,7 +944,6 @@ with tab2:
                 <div class="metric-label">{label}</div>
             </div>""", unsafe_allow_html=True)
 
-    # ── Milestone timeline ─────────────────────────────────────────────────────
     st.markdown("<div class='section-label'>Milestone Timeline</div>",
                 unsafe_allow_html=True)
 
@@ -967,7 +974,6 @@ with tab2:
             </div>
         </div>""", unsafe_allow_html=True)
 
-    # ── Partnership cards ──────────────────────────────────────────────────────
     st.markdown("<div class='section-label'>Partnership Detail</div>",
                 unsafe_allow_html=True)
 
@@ -1069,7 +1075,6 @@ with tab2:
             {p["Notes"]}
         </div>""", unsafe_allow_html=True)
 
-    # ── AI Synthesis ───────────────────────────────────────────────────────────
     st.markdown("<div class='section-label'>AI Strategic Synthesis</div>",
                 unsafe_allow_html=True)
     st.markdown("""
@@ -1084,18 +1089,35 @@ with tab2:
     if st.button("Generate Partnership Portfolio Synthesis →", key="syn2"):
         with st.spinner("Analyzing..."):
             insight2 = synthesize_partnership_portfolio(partnerships)
-        st.markdown(f"""
+        lines2 = insight2.strip().split("\n\n")
+        st.markdown("""
         <div class="card" style="border-left:2px solid #3ecf8e;
-                                  margin-top:12px;">
+                                  margin-top:12px; margin-bottom:8px;">
             <div style="font-size:10px; color:#3ecf8e; font-weight:700;
-                        letter-spacing:2px; text-transform:uppercase;
-                        margin-bottom:14px;">
-                AI SYNTHESIS · PARTNERSHIP PORTFOLIO
-            </div>
-            <div class="insight-card">
-                {insight2.replace(chr(10), '<br><br>')}
+                        letter-spacing:2px; text-transform:uppercase;">
+                STRATEGIC READ · PARTNERSHIP PORTFOLIO
             </div>
         </div>""", unsafe_allow_html=True)
+        for line in lines2:
+            if ":" in line:
+                label, _, content = line.partition(":")
+                accent = {
+                    "PORTFOLIO HEALTH": "#3ecf8e",
+                    "BIGGEST RISK":     "#cf4f4f",
+                    "BIGGEST OPPORTUNITY": "#3ea8cf",
+                    "RECOMMENDATION":   "#ffffff",
+                }.get(label.strip(), "#888")
+                st.markdown(f"""
+                <div style="margin-bottom:12px; padding:14px 18px;
+                            background:#050505; border-radius:8px;
+                            border-left:2px solid {accent};">
+                    <div style="font-size:10px; color:{accent};
+                                font-weight:700; letter-spacing:1.5px;
+                                text-transform:uppercase;
+                                margin-bottom:6px;">{label.strip()}</div>
+                    <div style="font-size:14px; color:#cccccc;
+                                line-height:1.8;">{content.strip()}</div>
+                </div>""", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1230,7 +1252,6 @@ with tab3:
 
     prog_df = pd.DataFrame(internal_programs)
 
-    # ── Portfolio metrics ──────────────────────────────────────────────────────
     st.markdown("<div class='section-label'>Portfolio Overview</div>",
                 unsafe_allow_html=True)
 
@@ -1252,7 +1273,6 @@ with tab3:
                 <div class="metric-label">{label}</div>
             </div>""", unsafe_allow_html=True)
 
-    # ── Bubble chart ───────────────────────────────────────────────────────────
     st.markdown(
         "<div class='section-label'>Opportunity vs. Effort Matrix</div>",
         unsafe_allow_html=True)
@@ -1260,9 +1280,8 @@ with tab3:
     st.markdown("""
     <div class="card" style="margin-bottom:16px;">
         <div style="font-size:13px; color:#777; line-height:1.8;">
-            <b style="color:#cccccc;">X-axis</b> = competitive pressure
-            externally.
-            <b style="color:#cccccc;">Y-axis</b> = FTEs allocated internally.
+            <b style="color:#cccccc;">X-axis</b> = competitive pressure.
+            <b style="color:#cccccc;">Y-axis</b> = FTEs allocated.
             <b style="color:#cccccc;">Bubble size</b> = NeoLink data coverage.
             <b style="color:#3ecf8e;">Top-left</b> is the sweet spot —
             high internal effort where competition is low.
@@ -1315,7 +1334,6 @@ with tab3:
     )
     st.plotly_chart(fig5, use_container_width=True)
 
-    # ── Strategic flags ────────────────────────────────────────────────────────
     st.markdown("<div class='section-label'>Strategic Flags</div>",
                 unsafe_allow_html=True)
 
@@ -1364,7 +1382,6 @@ with tab3:
             </div>
         </div>""", unsafe_allow_html=True)
 
-    # ── AI Synthesis ───────────────────────────────────────────────────────────
     st.markdown("<div class='section-label'>AI Strategic Synthesis</div>",
                 unsafe_allow_html=True)
     st.markdown("""
@@ -1379,20 +1396,36 @@ with tab3:
     if st.button("Generate Resource Allocation Synthesis →", key="syn3"):
         with st.spinner("Analyzing..."):
             insight3 = synthesize_resource_allocation(internal_programs)
-        st.markdown(f"""
+        lines3 = insight3.strip().split("\n\n")
+        st.markdown("""
         <div class="card" style="border-left:2px solid #d4a017;
-                                  margin-top:12px;">
+                                  margin-top:12px; margin-bottom:8px;">
             <div style="font-size:10px; color:#d4a017; font-weight:700;
-                        letter-spacing:2px; text-transform:uppercase;
-                        margin-bottom:14px;">
-                AI SYNTHESIS · RESOURCE ALLOCATION
-            </div>
-            <div class="insight-card">
-                {insight3.replace(chr(10), '<br><br>')}
+                        letter-spacing:2px; text-transform:uppercase;">
+                STRATEGIC READ · RESOURCE ALLOCATION
             </div>
         </div>""", unsafe_allow_html=True)
+        for line in lines3:
+            if ":" in line:
+                label, _, content = line.partition(":")
+                accent = {
+                    "ALLOCATION READ": "#d4a017",
+                    "UNDERWEIGHTED":   "#3ecf8e",
+                    "OVEREXPOSED":     "#cf4f4f",
+                    "RECOMMENDATION":  "#ffffff",
+                }.get(label.strip(), "#888")
+                st.markdown(f"""
+                <div style="margin-bottom:12px; padding:14px 18px;
+                            background:#050505; border-radius:8px;
+                            border-left:2px solid {accent};">
+                    <div style="font-size:10px; color:{accent};
+                                font-weight:700; letter-spacing:1.5px;
+                                text-transform:uppercase;
+                                margin-bottom:6px;">{label.strip()}</div>
+                    <div style="font-size:14px; color:#cccccc;
+                                line-height:1.8;">{content.strip()}</div>
+                </div>""", unsafe_allow_html=True)
 
-    # ── What I'd build next ────────────────────────────────────────────────────
     st.markdown("<div class='section-label'>What I'd Build Next</div>",
                 unsafe_allow_html=True)
 
