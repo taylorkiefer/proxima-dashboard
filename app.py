@@ -176,6 +176,21 @@ st.markdown("""
         color: #aaaaaa;
         margin-top: 3px;
     }
+
+    /* Inline toggle buttons for scorecard */
+    div[data-testid="stButton"] button[kind="secondary"] {
+        background: transparent !important;
+        border: none !important;
+        color: #555 !important;
+        font-size: 12px !important;
+        padding: 2px 0 !important;
+        font-weight: 500 !important;
+        text-align: left !important;
+    }
+    div[data-testid="stButton"] button[kind="secondary"]:hover {
+        color: #aaa !important;
+        background: transparent !important;
+    }
     /* Expander styling */
     .streamlit-expanderHeader {
         background: #0a0a0a !important;
@@ -389,10 +404,18 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
 
-        sc1, sc2, sc3 = st.columns(3)
+       sc1, sc2, sc3 = st.columns(3)
         with sc1:
+            trial_key = f"trials_{target_class.replace(' ','_').replace('/','_')}"
+            if trial_key not in st.session_state:
+                st.session_state[trial_key] = False
+            trial_btn_label = (
+                f"▾ {row['Clinical Trials']} active trials"
+                if st.session_state[trial_key]
+                else f"▸ {row['Clinical Trials']} active trials"
+            )
             st.markdown(f"""
-            <div style="padding:14px 0 8px 0;">
+            <div style="padding:14px 0 4px 0;">
                 <div class="field-label" style="color:#3ea8cf;">
                     CLINICAL VALIDATION</div>
                 <div style="font-size:18px; color:#3ea8cf;
@@ -400,13 +423,21 @@ with tab1:
                             margin:8px 0 4px 0;">
                     {score_bar(row["Validation Score"])}
                 </div>
-                <div class="field-value">
-                    {row["Clinical Trials"]} active trials
-                </div>
             </div>""", unsafe_allow_html=True)
+            if st.button(trial_btn_label, key=f"btn_{trial_key}"):
+                st.session_state[trial_key] = not st.session_state[trial_key]
+
         with sc2:
+            comp_key = f"comp_{target_class.replace(' ','_').replace('/','_')}"
+            if comp_key not in st.session_state:
+                st.session_state[comp_key] = False
+            comp_btn_label = (
+                f"▾ {row['Competitors']} known competitors"
+                if st.session_state[comp_key]
+                else f"▸ {row['Competitors']} known competitors"
+            )
             st.markdown(f"""
-            <div style="padding:14px 0 8px 0;">
+            <div style="padding:14px 0 4px 0;">
                 <div class="field-label" style="color:#3ecf8e;">
                     COMPETITIVE WHITESPACE</div>
                 <div style="font-size:18px; color:#3ecf8e;
@@ -414,10 +445,10 @@ with tab1:
                             margin:8px 0 4px 0;">
                     {score_bar(row["Whitespace Score"])}
                 </div>
-                <div class="field-value">
-                    {row["Competitors"]} known competitors
-                </div>
             </div>""", unsafe_allow_html=True)
+            if st.button(comp_btn_label, key=f"btn_{comp_key}"):
+                st.session_state[comp_key] = not st.session_state[comp_key]
+
         with sc3:
             st.markdown(f"""
             <div style="padding:14px 0 8px 0;">
@@ -431,24 +462,9 @@ with tab1:
                 <div class="field-value">Combined signal strength</div>
             </div>""", unsafe_allow_html=True)
 
-        cv1, cv2 = st.columns(2)
-        with cv1:
-            st.markdown(f"""
-            <div style="padding:4px 0 8px 0;">
-                <div class="field-label">PROXIMA PROGRAM</div>
-                <div class="field-value">{row["Proxima Program"]}</div>
-            </div>""", unsafe_allow_html=True)
-        with cv2:
-            st.markdown(f"""
-            <div style="padding:4px 0 8px 0;">
-                <div class="field-label">ACTIVE PARTNER</div>
-                <div class="field-value">{row["Proxima Partner"]}</div>
-            </div>""", unsafe_allow_html=True)
-            
-        # ── Interactive detail panels ──────────────────────────────────────
-        # Map target class to relevant trials
+        # ── Expandable detail panels ───────────────────────────────────────
         target_trial_map = {
-            "E3 Ligase / Molecular Glue": 
+            "E3 Ligase / Molecular Glue":
                 trials_df[trials_df["Modality"] == "Molecular Glue"][
                     ["Title","Sponsor","Phase","Indication"]
                 ].head(5) if not trials_df.empty else pd.DataFrame(),
@@ -464,107 +480,113 @@ with tab1:
 
         competitor_map = {
             "E3 Ligase / Molecular Glue": [
-                "Monte Rosa (QuEEN platform, Phase 1)",
-                "Kymera Therapeutics (expanding to glues, Phase 2)",
-                "Revolution Medicines (daraxonrasib, Phase 3)",
-                "C4 Therapeutics (TORPEDO platform, Phase 1/2)",
+                "Monte Rosa Therapeutics — QuEEN platform, Phase 1",
+                "Kymera Therapeutics — expanding to glues, Phase 2",
+                "Revolution Medicines — daraxonrasib, Phase 3",
+                "C4 Therapeutics — TORPEDO platform, Phase 1/2",
             ],
             "BRD / Transcription Factor": [
-                "Arvinas (BRD-targeting PROTACs, Phase 3)",
-                "Kymera Therapeutics (BRD degraders, Phase 2)",
-                "Nurix Therapeutics (DEL platform, Phase 2)",
+                "Arvinas — BRD-targeting PROTACs, Phase 3",
+                "Kymera Therapeutics — BRD degraders, Phase 2",
+                "Nurix Therapeutics — DEL platform, Phase 2",
             ],
             "Kinase / Scaffolding Protein": [
-                "Kymera (adjacent kinase programs)",
+                "Kymera Therapeutics — adjacent kinase programs",
             ],
             "RIPTAC Targets": [
-                "Halda Therapeutics (active Proxima partner)",
+                "Halda Therapeutics — active Proxima partner, preclinical",
             ],
             "Immune Modulators": [
-                "Nurix Therapeutics (immunology focus, Phase 2)",
-                "Kymera Therapeutics (immunology programs, Phase 2)",
+                "Nurix Therapeutics — immunology focus, Phase 2",
+                "Kymera Therapeutics — immunology programs, Phase 2",
             ],
             "CNS Targets": [],
             "Cardiovascular Targets": [
-                "Nurix (adjacent degrader programs)",
+                "Nurix Therapeutics — adjacent degrader programs",
             ],
             "Viral / Infectious Disease": [],
         }
 
-        target_class = row["Target Class"]
-        relevant_trials = target_trial_map.get(target_class, pd.DataFrame())
+        show_trials   = st.session_state.get(trial_key, False)
+        show_comp     = st.session_state.get(comp_key, False)
+        relevant_trials     = target_trial_map.get(target_class, pd.DataFrame())
         relevant_competitors = competitor_map.get(target_class, [])
 
-        detail_col1, detail_col2 = st.columns(2)
+        if show_trials or show_comp:
+            detail1, detail2 = st.columns(2)
 
-        with detail_col1:
-            trial_count = row["Clinical Trials"]
-            toggle_key = f"trials_{target_class.replace(' ','_').replace('/','_')}"
-            if toggle_key not in st.session_state:
-                st.session_state[toggle_key] = False
-
-            if st.button(
-                f"▾ {trial_count} active trials" if st.session_state[toggle_key]
-                else f"▸ {trial_count} active trials",
-                key=f"btn_{toggle_key}"
-            ):
-                st.session_state[toggle_key] = not st.session_state[toggle_key]
-
-            if st.session_state[toggle_key]:
-                if not relevant_trials.empty:
-                    for _, t in relevant_trials.iterrows():
-                        st.markdown(f"""
-                        <div style="background:#050505; border:1px solid #151515;
-                                    border-radius:6px; padding:10px 14px;
-                                    margin-bottom:6px;">
-                            <div style="font-size:12px; color:#ccc;
-                                        margin-bottom:3px; line-height:1.5;">
-                                {t['Title'][:80]}{'...' if len(t['Title'])>80 else ''}
-                            </div>
-                            <div style="display:flex; gap:12px;">
-                                <span style="font-size:11px; color:#555;">
-                                    {t['Sponsor'][:30]}
-                                </span>
-                                <span style="font-size:11px; color:#3ea8cf;">
-                                    {t['Phase']}
-                                </span>
-                            </div>
+            with detail1:
+                if show_trials:
+                    if not relevant_trials.empty:
+                        for _, t in relevant_trials.iterrows():
+                            st.markdown(f"""
+                            <div style="background:#050505;
+                                        border:1px solid #151515;
+                                        border-radius:6px;
+                                        padding:10px 14px;
+                                        margin-bottom:6px;">
+                                <div style="font-size:12px; color:#ccc;
+                                            margin-bottom:4px;
+                                            line-height:1.5;">
+                                    {t['Title'][:75]}{'...' if len(t['Title'])>75 else ''}
+                                </div>
+                                <div style="display:flex; gap:12px;">
+                                    <span style="font-size:11px; color:#555;">
+                                        {t['Sponsor'][:30]}
+                                    </span>
+                                    <span style="font-size:11px;
+                                                 color:#3ea8cf;">
+                                        {t['Phase']}
+                                    </span>
+                                </div>
+                            </div>""", unsafe_allow_html=True)
+                    else:
+                        st.markdown("""
+                        <div style="font-size:12px; color:#444; padding:8px 0;">
+                            No exact modality match in current trial dataset.
                         </div>""", unsafe_allow_html=True)
-                else:
-                    st.markdown("""
-                    <div style="font-size:12px; color:#444; padding:8px 0;">
-                        No matching trials in current dataset for this
-                        specific modality.
-                    </div>""", unsafe_allow_html=True)
 
-        with detail_col2:
-            comp_count = row["Competitors"]
-            comp_key = f"comp_{target_class.replace(' ','_').replace('/','_')}"
-            if comp_key not in st.session_state:
-                st.session_state[comp_key] = False
-
-            if st.button(
-                f"▾ {comp_count} known competitors" if st.session_state[comp_key]
-                else f"▸ {comp_count} known competitors",
-                key=f"btn_{comp_key}"
-            ):
-                st.session_state[comp_key] = not st.session_state[comp_key]
-
-            if st.session_state[comp_key]:
-                if relevant_competitors:
-                    for c in relevant_competitors:
-                        st.markdown(f"""
-                        <div style="background:#050505; border:1px solid #151515;
-                                    border-radius:6px; padding:10px 14px;
-                                    margin-bottom:6px;">
-                            <div style="font-size:12px; color:#ccc;
-                                        line-height:1.5;">{c}</div>
+            with detail2:
+                if show_comp:
+                    if relevant_competitors:
+                        for c in relevant_competitors:
+                            st.markdown(f"""
+                            <div style="background:#050505;
+                                        border:1px solid #151515;
+                                        border-radius:6px;
+                                        padding:10px 14px;
+                                        margin-bottom:6px;">
+                                <div style="font-size:12px; color:#ccc;
+                                            line-height:1.5;">{c}</div>
+                            </div>""", unsafe_allow_html=True)
+                    else:
+                        st.markdown("""
+                        <div style="font-size:12px; color:#3ecf8e;
+                                    padding:8px 0; font-weight:500;">
+                            No known competitors — this space is open.
                         </div>""", unsafe_allow_html=True)
-                else:
-                    st.markdown("""
-                    <div style="font-size:12px; color:#3ecf8e; padding:8px 0;">
-                        No known competitors — this space is open.
-                    </div>""", unsafe_allow_html=True)
+
+        # ── Coverage + notes ───────────────────────────────────────────────
+        cv1, cv2 = st.columns(2)
+        with cv1:
+            st.markdown(f"""
+            <div style="padding:4px 0 8px 0;">
+                <div class="field-label">PROXIMA PROGRAM</div>
+                <div class="field-value">{row["Proxima Program"]}</div>
+            </div>""", unsafe_allow_html=True)
+        with cv2:
+            st.markdown(f"""
+            <div style="padding:4px 0 8px 0;">
+                <div class="field-label">ACTIVE PARTNER</div>
+                <div class="field-value">{row["Proxima Partner"]}</div>
+            </div>""", unsafe_allow_html=True)
+
+        st.markdown(f"""
+        <div style="font-size:13px; color:#888; line-height:1.8;
+                    border-top:1px solid #151515; padding-top:12px;
+                    margin-bottom:20px;">
+            {row["Whitespace Notes"]}
+        </div>""", unsafe_allow_html=True)
 
         st.markdown(f"""
         <div style="font-size:13px; color:#888; line-height:1.8;
