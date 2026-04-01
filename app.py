@@ -233,6 +233,10 @@ if "show_trials" not in st.session_state:
     st.session_state.show_trials = False
 if "ext_synthesis" not in st.session_state:
     st.session_state.ext_synthesis = None
+if "partner_synthesis" not in st.session_state:
+    st.session_state.partner_synthesis = None
+if "alloc_synthesis" not in st.session_state:
+    st.session_state.alloc_synthesis = None
 
 # ── Tabs ───────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3 = st.tabs([
@@ -1223,22 +1227,17 @@ with tab2:
 
     st.markdown("<div class='section-label'>AI Strategic Synthesis</div>",
                 unsafe_allow_html=True)
-    st.markdown("""
-    <div class="card" style="margin-bottom:16px;">
-        <div style="font-size:13px; color:#777; line-height:1.8;">
-            Generates a live strategic assessment of the partnership portfolio
-            — risk concentration, near-term priorities, and what deserves
-            a leadership conversation right now.
-        </div>
-    </div>""", unsafe_allow_html=True)
 
-    if st.button("Generate Partnership Portfolio Synthesis →", key="syn2"):
-        with st.spinner("Analyzing..."):
-            insight2 = synthesize_partnership_portfolio(partnerships)
-        lines2 = insight2.strip().split("\n\n")
+    if st.session_state.partner_synthesis is None:
+        with st.spinner("Generating strategic read..."):
+            st.session_state.partner_synthesis = \
+                synthesize_partnership_portfolio(partnerships)
+
+    if st.session_state.partner_synthesis:
+        lines2 = st.session_state.partner_synthesis.strip().split("\n\n")
         st.markdown("""
         <div class="card" style="border-left:2px solid #3ecf8e;
-                                  margin-top:12px; margin-bottom:8px;">
+                                  margin-bottom:8px;">
             <div style="font-size:10px; color:#3ecf8e; font-weight:700;
                         letter-spacing:2px; text-transform:uppercase;">
                 STRATEGIC READ · PARTNERSHIP PORTFOLIO
@@ -1248,7 +1247,7 @@ with tab2:
             if ":" in line:
                 label, _, content = line.partition(":")
                 accent = {
-                    "PORTFOLIO HEALTH": "#3ecf8e",
+                    "PORTFOLIO HEALTH":    "#3ecf8e",
                     "BIGGEST RISK":        "#cf4f4f",
                     "BIGGEST OPPORTUNITY": "#3ea8cf",
                     "RECOMMENDATION":      "#ffffff",
@@ -1264,7 +1263,9 @@ with tab2:
                     <div style="font-size:14px; color:#cccccc;
                                 line-height:1.8;">{content.strip()}</div>
                 </div>""", unsafe_allow_html=True)
-
+        if st.button("Regenerate ↺", key="regen_syn2"):
+            st.session_state.partner_synthesis = None
+            st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — RESOURCE ALLOCATION
@@ -1530,22 +1531,17 @@ with tab3:
 
     st.markdown("<div class='section-label'>AI Strategic Synthesis</div>",
                 unsafe_allow_html=True)
-    st.markdown("""
-    <div class="card" style="margin-bottom:16px;">
-        <div style="font-size:13px; color:#777; line-height:1.8;">
-            Generates a live strategic assessment of resource allocation —
-            whether effort is going where the opportunity is, and what
-            to bring to leadership.
-        </div>
-    </div>""", unsafe_allow_html=True)
 
-    if st.button("Generate Resource Allocation Synthesis →", key="syn3"):
-        with st.spinner("Analyzing..."):
-            insight3 = synthesize_resource_allocation(internal_programs)
-        lines3 = insight3.strip().split("\n\n")
+    if st.session_state.alloc_synthesis is None:
+        with st.spinner("Generating strategic read..."):
+            st.session_state.alloc_synthesis = \
+                synthesize_resource_allocation(internal_programs)
+
+    if st.session_state.alloc_synthesis:
+        lines3 = st.session_state.alloc_synthesis.strip().split("\n\n")
         st.markdown("""
         <div class="card" style="border-left:2px solid #d4a017;
-                                  margin-top:12px; margin-bottom:8px;">
+                                  margin-bottom:8px;">
             <div style="font-size:10px; color:#d4a017; font-weight:700;
                         letter-spacing:2px; text-transform:uppercase;">
                 STRATEGIC READ · RESOURCE ALLOCATION
@@ -1571,6 +1567,9 @@ with tab3:
                     <div style="font-size:14px; color:#cccccc;
                                 line-height:1.8;">{content.strip()}</div>
                 </div>""", unsafe_allow_html=True)
+        if st.button("Regenerate ↺", key="regen_syn3"):
+            st.session_state.alloc_synthesis = None
+            st.rerun()
 
     st.markdown("<div class='section-label'>What I'd Build Next</div>",
                 unsafe_allow_html=True)
