@@ -182,7 +182,7 @@ def fetch_recent_trials(days=365):
     recent = df[df["_start_parsed"] >= cutoff].drop(columns=["_start_parsed"])
     return recent
 
-# ── PubMed + bioRxiv Literature Signals ───────────────────────────────────────
+# ── PubMed Literature Signals ───────────────────────────────────────
 
 PUBMED_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 BIORXIV_BASE = "https://api.biorxiv.org/details"
@@ -371,16 +371,21 @@ def debug_europepmc(query: str) -> dict:
     try:
         url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
         params = {
-            "query": f"{query} SOURCE:PPR",
+            "query": f"{query} (SRC:PPR OR SRC:MED)",
             "format": "json",
             "pageSize": 5,
             "sort": "P_PDATE_D desc",
             "resultType": "core",
         }
         resp = requests.get(url, params=params, timeout=10)
+        data = resp.json()
+        # Just return the first result so we can see the structure
+        results = data.get("resultList", {}).get("result", [])
         return {
             "status": resp.status_code,
-            "data": resp.json()
+            "hitCount": data.get("hitCount", 0),
+            "first_result": results[0] if results else "no results",
         }
     except Exception as e:
         return {"error": str(e)}
+    

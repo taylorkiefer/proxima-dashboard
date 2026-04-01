@@ -4,6 +4,7 @@ from data import (
     fetch_recent_trials,
     fetch_all_literature,
     LITERATURE_QUERIES,
+    build_whitespace_scorecard,
 )
 from synthesis import (
     synthesize_external_landscape,
@@ -353,7 +354,275 @@ with tab1:
         <div class="proxima-card" style="color:#333; font-size:13px;">
             Could not load trial data. Check your internet connection.
         </div>""", unsafe_allow_html=True)
+# ── Whitespace Scorecard ───────────────────────────────────────────────────
+    st.markdown(
+        "<div class='section-label'>Strategic Whitespace Scorecard</div>",
+        unsafe_allow_html=True)
 
+    st.markdown("""
+    <div class="proxima-card" style="border-left:2px solid #1e3a4a;
+                                      margin-bottom:16px;">
+        <div style="font-size:13px; color:#3ea8cf; font-weight:600;
+                    text-transform:uppercase; letter-spacing:1px;
+                    margin-bottom:8px;">WHERE SHOULD PROXIMA FOCUS NEXT?</div>
+        <div style="font-size:13px; color:#555; line-height:1.7;">
+            Each target class scored across three dimensions:
+            <b style="color:#aaa;">Clinical Validation</b> (is the biology
+            proven in the clinic?),
+            <b style="color:#aaa;">Competitive Whitespace</b> (how crowded
+            is this space?), and
+            <b style="color:#aaa;">NeoLink Advantage</b> (do we have
+            structural data coverage?). Strategic Priority flags where the
+            opportunity is highest relative to Proxima's current position.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    scorecard_df = build_whitespace_scorecard(trials_df)
+
+    # ── Priority legend ────────────────────────────────────────────────────────
+    leg1, leg2, leg3, leg4 = st.columns(4)
+    for col, icon, label, desc, color in zip(
+        [leg1, leg2, leg3, leg4],
+        ["🔴", "🟡", "🟢", "⚪"],
+        ["Act Now", "Strengthen", "Maintain", "Monitor"],
+        ["High opportunity, no coverage",
+         "Good opportunity, partial coverage",
+         "Covered and positioned",
+         "Early or low priority"],
+        ["#cf4f4f", "#d4a017", "#3ecf8e", "#444"]
+    ):
+        with col:
+            st.markdown(f"""
+            <div class="metric-card" style="text-align:left; padding:16px;">
+                <div style="font-size:20px; margin-bottom:6px;">{icon}</div>
+                <div style="font-size:13px; font-weight:600;
+                            color:{color};">{label}</div>
+                <div style="font-size:11px; color:#444; margin-top:4px;
+                            line-height:1.5;">{desc}</div>
+            </div>""", unsafe_allow_html=True)
+
+    st.markdown("<div style='margin-top:16px;'></div>",
+                unsafe_allow_html=True)
+
+    # ── Scorecard cards ────────────────────────────────────────────────────────
+    for _, row in scorecard_df.iterrows():
+        priority = row["Strategic Priority"]
+        priority_color = {
+            "🔴 Act Now":    "#cf4f4f",
+            "🟡 Strengthen": "#d4a017",
+            "🟢 Maintain":   "#3ecf8e",
+            "⚪ Monitor":    "#444",
+        }.get(priority, "#444")
+
+        coverage_badge = {
+            3: "<span class='badge badge-green'>Full coverage</span>",
+            2: "<span class='badge badge-yellow'>Partial coverage</span>",
+            1: "<span class='badge badge-red'>No coverage</span>",
+        }.get(row["Coverage Score"], "")
+
+        neolink_badge = {
+            "High":   "<span class='badge badge-green'>NeoLink: High</span>",
+            "Medium": "<span class='badge badge-yellow'>NeoLink: Medium</span>",
+            "Low":    "<span class='badge badge-red'>NeoLink: Low</span>",
+        }.get(row["NeoLink Coverage"], "")
+
+        # Score bar helper
+        def score_bar(score, max_score=3):
+            filled = "█" * score
+            empty  = "░" * (max_score - score)
+            return filled + empty
+
+        st.markdown(f"""
+        <div class="proxima-card"
+             style="border-left:2px solid {priority_color};">
+            <div style="display:flex; justify-content:space-between;
+                        align-items:flex-start; margin-bottom:14px;">
+                <div>
+                    <div style="font-size:16px; font-weight:700;
+                                color:#fff; margin-bottom:4px;">
+                        {row["Target Class"]}
+                    </div>
+                    <div style="font-size:12px; color:#555;">
+                        {row["Modality"]} · {row["Indication"]}
+                    </div>
+                </div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;
+                            justify-content:flex-end; align-items:center;">
+                    {coverage_badge}
+                    {neolink_badge}
+                    <span style="font-size:13px; font-weight:700;
+                                 color:{priority_color};">{priority}</span>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(3,1fr);
+                        gap:16px; margin-bottom:14px;">
+                <div>
+                    <div style="font-size:10px; color:#444;
+                                text-transform:uppercase;
+                                letter-spacing:1px; margin-bottom:6px;">
+                        CLINICAL VALIDATION
+                    </div>
+                    <div style="font-size:16px; color:#3ea8cf;
+                                font-family:monospace; letter-spacing:2px;">
+                        {score_bar(row["Validation Score"])}
+                    </div>
+                    <div style="font-size:12px; color:#555; margin-top:4px;">
+                        {row["Clinical Trials"]} active trials
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:10px; color:#444;
+                                text-transform:uppercase;
+                                letter-spacing:1px; margin-bottom:6px;">
+                        COMPETITIVE WHITESPACE
+                    </div>
+                    <div style="font-size:16px; color:#3ecf8e;
+                                font-family:monospace; letter-spacing:2px;">
+                        {score_bar(row["Whitespace Score"])}
+                    </div>
+                    <div style="font-size:12px; color:#555; margin-top:4px;">
+                        {row["Competitors"]} known competitors
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:10px; color:#444;
+                                text-transform:uppercase;
+                                letter-spacing:1px; margin-bottom:6px;">
+                        OPPORTUNITY SCORE
+                    </div>
+                    <div style="font-size:24px; font-weight:700;
+                                color:#fff;">
+                        {row["Opportunity Score"]}<span style="font-size:13px;
+                        color:#444;">/9</span>
+                    </div>
+                    <div style="font-size:12px; color:#555; margin-top:4px;">
+                        Combined signal strength
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr;
+                        gap:16px; margin-bottom:12px;">
+                <div>
+                    <div style="font-size:10px; color:#444;
+                                text-transform:uppercase;
+                                letter-spacing:1px;">PROXIMA PROGRAM</div>
+                    <div style="font-size:13px; color:#888; margin-top:3px;">
+                        {row["Proxima Program"]}
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:10px; color:#444;
+                                text-transform:uppercase;
+                                letter-spacing:1px;">ACTIVE PARTNER</div>
+                    <div style="font-size:13px; color:#888; margin-top:3px;">
+                        {row["Proxima Partner"]}
+                    </div>
+                </div>
+            </div>
+
+            <div style="font-size:13px; color:#555; line-height:1.7;
+                        border-top:1px solid #111; padding-top:12px;">
+                {row["Whitespace Notes"]}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ── Whitespace summary chart ───────────────────────────────────────────────
+    st.markdown("<div class='section-label'>Opportunity Matrix</div>",
+                unsafe_allow_html=True)
+
+    fig_ws = px.scatter(
+        scorecard_df,
+        x="Whitespace Score",
+        y="Validation Score",
+        size="NeoLink Score",
+        color="Strategic Priority",
+        hover_name="Target Class",
+        hover_data={
+            "Modality": True,
+            "Indication": True,
+            "Clinical Trials": True,
+            "Competitors": True,
+            "Proxima Program": True,
+            "Whitespace Score": False,
+            "Validation Score": False,
+            "NeoLink Score": False,
+        },
+        title="Target Class Opportunity Matrix",
+        color_discrete_map={
+            "🔴 Act Now":    "#cf4f4f",
+            "🟡 Strengthen": "#d4a017",
+            "🟢 Maintain":   "#3ecf8e",
+            "⚪ Monitor":    "#555",
+        },
+        size_max=40,
+    )
+    fig_ws.update_layout(
+        plot_bgcolor="#050505",
+        paper_bgcolor="#050505",
+        font_color="#444",
+        title_font_color="#aaa",
+        title_font_size=13,
+        margin=dict(t=40, l=10, r=10, b=10),
+        xaxis=dict(
+            title="Competitive Whitespace (3 = wide open)",
+            tickvals=[1, 2, 3],
+            ticktext=["Crowded", "Some room", "Wide open"],
+            gridcolor="#111",
+            showline=False,
+            range=[0.5, 3.5],
+        ),
+        yaxis=dict(
+            title="Clinical Validation (3 = well validated)",
+            tickvals=[1, 2, 3],
+            ticktext=["Early", "Emerging", "Validated"],
+            gridcolor="#111",
+            showline=False,
+            range=[0.5, 3.5],
+        ),
+        legend=dict(
+            bgcolor="#050505",
+            bordercolor="#1a1a1a",
+            borderwidth=1,
+        ),
+    )
+
+    # Add quadrant labels
+    fig_ws.add_annotation(
+        x=2.8, y=2.8,
+        text="Sweet spot",
+        showarrow=False,
+        font=dict(color="#3ecf8e", size=11),
+        bgcolor="#071a0f",
+        bordercolor="#0d3320",
+        borderwidth=1,
+        borderpad=4,
+    )
+    fig_ws.add_annotation(
+        x=1.2, y=2.8,
+        text="Crowded but validated",
+        showarrow=False,
+        font=dict(color="#d4a017", size=11),
+        bgcolor="#1a1500",
+        bordercolor="#332b00",
+        borderwidth=1,
+        borderpad=4,
+    )
+    fig_ws.add_annotation(
+        x=2.8, y=1.2,
+        text="Pioneer territory",
+        showarrow=False,
+        font=dict(color="#3ea8cf", size=11),
+        bgcolor="#051525",
+        bordercolor="#0d2d45",
+        borderwidth=1,
+        borderpad=4,
+    )
+
+    st.plotly_chart(fig_ws, use_container_width=True)
     # ── Literature Signals ─────────────────────────────────────────────────────
     st.markdown("<div class='section-label'>PubMed Literature Signals</div>",
                 unsafe_allow_html=True)
@@ -368,7 +637,7 @@ with tab1:
     </div>
     """, unsafe_allow_html=True)
 
-    with st.spinner("Fetching latest literature from PubMed and bioRxiv..."):
+    with st.spinner("Fetching latest literature from PubMed..."):
         lit_df = fetch_all_literature()
 
     if not lit_df.empty:
