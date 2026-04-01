@@ -851,9 +851,6 @@ with tab1:
         """, unsafe_allow_html=True)
 
     # ── Clinical Trials (toggle) ───────────────────────────────────────────────
-    if "show_trials" not in st.session_state:
-        st.session_state.show_trials = False
-
     if st.button(
         "Hide clinical trial data ↑" if st.session_state.show_trials
         else "View full clinical trial data ↓",
