@@ -185,7 +185,6 @@ def fetch_recent_trials(days=365):
 # ── PubMed Literature Signals ───────────────────────────────────────
 
 PUBMED_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
-BIORXIV_BASE = "https://api.biorxiv.org/details"
 
 LITERATURE_QUERIES = [
     "molecular glue degrader",
@@ -389,3 +388,153 @@ def debug_europepmc(query: str) -> dict:
     except Exception as e:
         return {"error": str(e)}
     
+@st.cache_data(ttl=3600)
+def build_whitespace_scorecard(trials_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Builds a whitespace scorecard scoring ProMod target classes
+    across clinical validation, competitive crowding, and Proxima coverage.
+    """
+
+    target_classes = [
+        {
+            "Target Class": "E3 Ligase / Molecular Glue",
+            "Modality": "Molecular Glue",
+            "Clinical Trials": len(trials_df[
+                trials_df["Modality"] == "Molecular Glue"
+            ]) if not trials_df.empty else 0,
+            "Competitors": 4,
+            "Proxima Program": "PRX-001 (Lead Opt)",
+            "Proxima Partner": "J&J",
+            "NeoLink Coverage": "High",
+            "Indication": "Oncology",
+            "Whitespace Notes": "Crowded in oncology. Immunology and CNS applications remain largely unexplored. Neo-1 glue design speed is the differentiator.",
+        },
+        {
+            "Target Class": "BRD / Transcription Factor",
+            "Modality": "PROTAC",
+            "Clinical Trials": len(trials_df[
+                trials_df["Modality"] == "PROTAC"
+            ]) if not trials_df.empty else 0,
+            "Competitors": 3,
+            "Proxima Program": "PRX-002 (Hit Discovery)",
+            "Proxima Partner": "BMS",
+            "NeoLink Coverage": "High",
+            "Indication": "Oncology",
+            "Whitespace Notes": "BRD4 is crowded. Novel BRD family members remain accessible via NeoLink proteome coverage. Strong structural data advantage.",
+        },
+        {
+            "Target Class": "Kinase / Scaffolding Protein",
+            "Modality": "Molecular Glue",
+            "Clinical Trials": 2,
+            "Competitors": 1,
+            "Proxima Program": "PRX-003 (Target Validation)",
+            "Proxima Partner": "None",
+            "NeoLink Coverage": "Medium",
+            "Indication": "Immunology",
+            "Whitespace Notes": "Significant whitespace. Low competition, strong biological rationale. Only Proxima internal program in immunology. Partnership opportunity.",
+        },
+        {
+            "Target Class": "RIPTAC Targets",
+            "Modality": "RIPTAC",
+            "Clinical Trials": len(trials_df[
+                trials_df["Modality"] == "RIPTAC"
+            ]) if not trials_df.empty else 0,
+            "Competitors": 1,
+            "Proxima Program": "HALDA-PRX-01/02",
+            "Proxima Partner": "Halda",
+            "NeoLink Coverage": "High",
+            "Indication": "Oncology",
+            "Whitespace Notes": "Wide open. Minimal competition. Neo-1 ternary complex strength is uniquely suited. First mover advantage available if programs accelerate.",
+        },
+        {
+            "Target Class": "Immune Modulators",
+            "Modality": "PROTAC",
+            "Clinical Trials": 3,
+            "Competitors": 2,
+            "Proxima Program": "BMS-PRX-01",
+            "Proxima Partner": "BMS",
+            "NeoLink Coverage": "Medium",
+            "Indication": "Immunology",
+            "Whitespace Notes": "Emerging area. BMS partnership provides beachhead. Significant room for additional partners in autoimmune and inflammatory indications.",
+        },
+        {
+            "Target Class": "CNS Targets",
+            "Modality": "Molecular Glue / PROTAC",
+            "Clinical Trials": 1,
+            "Competitors": 0,
+            "Proxima Program": "None",
+            "Proxima Partner": "None",
+            "NeoLink Coverage": "Medium",
+            "Indication": "Neurodegeneration",
+            "Whitespace Notes": "Significant unmet need. Almost no ProMod competition. Blood-brain barrier penetration is a challenge but not insurmountable. High-value partnership opportunity.",
+        },
+        {
+            "Target Class": "Viral / Infectious Disease",
+            "Modality": "Molecular Glue",
+            "Clinical Trials": 1,
+            "Competitors": 0,
+            "Proxima Program": "None",
+            "Proxima Partner": "None",
+            "NeoLink Coverage": "Low",
+            "Indication": "Infectious Disease",
+            "Whitespace Notes": "Very early. Limited NeoLink coverage. Low near-term priority but worth monitoring as ProMod platform matures.",
+        },
+        {
+            "Target Class": "Cardiovascular Targets",
+            "Modality": "PROTAC",
+            "Clinical Trials": 2,
+            "Competitors": 1,
+            "Proxima Program": "None",
+            "Proxima Partner": "None",
+            "NeoLink Coverage": "Medium",
+            "Indication": "Cardiovascular",
+            "Whitespace Notes": "Underexplored. One competitor adjacent. Large unmet need. NeoLink coverage growing. Potential new partnership vertical.",
+        },
+    ]
+
+    df = pd.DataFrame(target_classes)
+
+    def score_validation(trials):
+        if trials >= 8:   return 3
+        elif trials >= 3: return 2
+        else:             return 1
+
+    def score_crowding(competitors):
+        if competitors == 0:   return 3
+        elif competitors <= 2: return 2
+        else:                  return 1
+
+    def score_coverage(program, partner):
+        if program != "None" and partner != "None": return 3
+        elif program != "None" or partner != "None": return 2
+        else:                                        return 1
+
+    def score_neolink(coverage):
+        return {"High": 3, "Medium": 2, "Low": 1}.get(coverage, 1)
+
+    df["Validation Score"] = df["Clinical Trials"].apply(score_validation)
+    df["Whitespace Score"] = df["Competitors"].apply(score_crowding)
+    df["Coverage Score"]   = df.apply(
+        lambda r: score_coverage(r["Proxima Program"], r["Proxima Partner"]),
+        axis=1
+    )
+    df["NeoLink Score"]    = df["NeoLink Coverage"].apply(score_neolink)
+
+    df["Opportunity Score"] = (
+        df["Validation Score"] +
+        df["Whitespace Score"] +
+        df["NeoLink Score"]
+    )
+
+    df["Strategic Priority"] = df.apply(
+        lambda r: "🔴 Act Now"    if r["Opportunity Score"] >= 7
+                                     and r["Coverage Score"] == 1
+             else "🟡 Strengthen" if r["Opportunity Score"] >= 6
+                                     and r["Coverage Score"] <= 2
+             else "🟢 Maintain"   if r["Coverage Score"] == 3
+             else "⚪ Monitor",
+        axis=1
+    )
+
+    df = df.sort_values("Opportunity Score", ascending=False)
+    return df
