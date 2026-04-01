@@ -356,6 +356,7 @@ with tab1:
                 unsafe_allow_html=True)
 
     for _, row in scorecard_df.iterrows():
+        target_class = row["Target Class"]
         priority = row["Strategic Priority"]
         priority_color = {
             "🔴 Act Now":    "#cf4f4f",
@@ -379,6 +380,7 @@ with tab1:
         def score_bar(score, max_score=3):
             return ("█" * score) + ("░" * (max_score - score))
 
+        # Card header
         st.markdown(f"""
         <div class="card" style="border-left:2px solid {priority_color};
                                   margin-bottom:4px;">
@@ -404,16 +406,16 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
 
-       sc1, sc2, sc3 = st.columns(3)
+        # Score columns with inline toggles
+        trial_key = f"trials_{target_class.replace(' ','_').replace('/','_')}"
+        comp_key  = f"comp_{target_class.replace(' ','_').replace('/','_')}"
+        if trial_key not in st.session_state:
+            st.session_state[trial_key] = False
+        if comp_key not in st.session_state:
+            st.session_state[comp_key] = False
+
+        sc1, sc2, sc3 = st.columns(3)
         with sc1:
-            trial_key = f"trials_{target_class.replace(' ','_').replace('/','_')}"
-            if trial_key not in st.session_state:
-                st.session_state[trial_key] = False
-            trial_btn_label = (
-                f"▾ {row['Clinical Trials']} active trials"
-                if st.session_state[trial_key]
-                else f"▸ {row['Clinical Trials']} active trials"
-            )
             st.markdown(f"""
             <div style="padding:14px 0 4px 0;">
                 <div class="field-label" style="color:#3ea8cf;">
@@ -424,18 +426,15 @@ with tab1:
                     {score_bar(row["Validation Score"])}
                 </div>
             </div>""", unsafe_allow_html=True)
-            if st.button(trial_btn_label, key=f"btn_{trial_key}"):
+            trial_btn = (
+                f"▾ {row['Clinical Trials']} active trials"
+                if st.session_state[trial_key]
+                else f"▸ {row['Clinical Trials']} active trials"
+            )
+            if st.button(trial_btn, key=f"btn_{trial_key}"):
                 st.session_state[trial_key] = not st.session_state[trial_key]
 
         with sc2:
-            comp_key = f"comp_{target_class.replace(' ','_').replace('/','_')}"
-            if comp_key not in st.session_state:
-                st.session_state[comp_key] = False
-            comp_btn_label = (
-                f"▾ {row['Competitors']} known competitors"
-                if st.session_state[comp_key]
-                else f"▸ {row['Competitors']} known competitors"
-            )
             st.markdown(f"""
             <div style="padding:14px 0 4px 0;">
                 <div class="field-label" style="color:#3ecf8e;">
@@ -446,7 +445,12 @@ with tab1:
                     {score_bar(row["Whitespace Score"])}
                 </div>
             </div>""", unsafe_allow_html=True)
-            if st.button(comp_btn_label, key=f"btn_{comp_key}"):
+            comp_btn = (
+                f"▾ {row['Competitors']} known competitors"
+                if st.session_state[comp_key]
+                else f"▸ {row['Competitors']} known competitors"
+            )
+            if st.button(comp_btn, key=f"btn_{comp_key}"):
                 st.session_state[comp_key] = not st.session_state[comp_key]
 
         with sc3:
@@ -462,7 +466,7 @@ with tab1:
                 <div class="field-value">Combined signal strength</div>
             </div>""", unsafe_allow_html=True)
 
-        # ── Expandable detail panels ───────────────────────────────────────
+        # Expandable detail panels
         target_trial_map = {
             "E3 Ligase / Molecular Glue":
                 trials_df[trials_df["Modality"] == "Molecular Glue"][
@@ -507,14 +511,13 @@ with tab1:
             "Viral / Infectious Disease": [],
         }
 
-        show_trials   = st.session_state.get(trial_key, False)
-        show_comp     = st.session_state.get(comp_key, False)
-        relevant_trials     = target_trial_map.get(target_class, pd.DataFrame())
-        relevant_competitors = competitor_map.get(target_class, [])
+        show_trials      = st.session_state.get(trial_key, False)
+        show_comp        = st.session_state.get(comp_key, False)
+        relevant_trials  = target_trial_map.get(target_class, pd.DataFrame())
+        relevant_comps   = competitor_map.get(target_class, [])
 
         if show_trials or show_comp:
             detail1, detail2 = st.columns(2)
-
             with detail1:
                 if show_trials:
                     if not relevant_trials.empty:
@@ -542,14 +545,14 @@ with tab1:
                             </div>""", unsafe_allow_html=True)
                     else:
                         st.markdown("""
-                        <div style="font-size:12px; color:#444; padding:8px 0;">
-                            No exact modality match in current trial dataset.
+                        <div style="font-size:12px; color:#444;
+                                    padding:8px 0;">
+                            No exact modality match in current dataset.
                         </div>""", unsafe_allow_html=True)
-
             with detail2:
                 if show_comp:
-                    if relevant_competitors:
-                        for c in relevant_competitors:
+                    if relevant_comps:
+                        for c in relevant_comps:
                             st.markdown(f"""
                             <div style="background:#050505;
                                         border:1px solid #151515;
@@ -566,7 +569,7 @@ with tab1:
                             No known competitors — this space is open.
                         </div>""", unsafe_allow_html=True)
 
-        # ── Coverage + notes ───────────────────────────────────────────────
+        # Coverage + notes
         cv1, cv2 = st.columns(2)
         with cv1:
             st.markdown(f"""
@@ -580,13 +583,6 @@ with tab1:
                 <div class="field-label">ACTIVE PARTNER</div>
                 <div class="field-value">{row["Proxima Partner"]}</div>
             </div>""", unsafe_allow_html=True)
-
-        st.markdown(f"""
-        <div style="font-size:13px; color:#888; line-height:1.8;
-                    border-top:1px solid #151515; padding-top:12px;
-                    margin-bottom:20px;">
-            {row["Whitespace Notes"]}
-        </div>""", unsafe_allow_html=True)
 
         st.markdown(f"""
         <div style="font-size:13px; color:#888; line-height:1.8;
