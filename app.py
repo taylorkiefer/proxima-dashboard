@@ -231,12 +231,6 @@ st.markdown(f"""
 # ── Session state initialization ───────────────────────────────────────────────
 if "show_trials" not in st.session_state:
     st.session_state.show_trials = False
-if "ext_synthesis" not in st.session_state:
-    st.session_state.ext_synthesis = None
-if "partner_synthesis" not in st.session_state:
-    st.session_state.partner_synthesis = None
-if "alloc_synthesis" not in st.session_state:
-    st.session_state.alloc_synthesis = None
 
 # ── Tabs ───────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3 = st.tabs([
@@ -922,50 +916,7 @@ with tab1:
                                    marker_line_width=2)
                 st.plotly_chart(fig2, use_container_width=True)
 
-    # ── AI Synthesis (auto-loads) ──────────────────────────────────────────────
-    st.markdown("<div class='section-label'>AI Strategic Synthesis</div>",
-                unsafe_allow_html=True)
-
-    if st.session_state.ext_synthesis is None and not trials_df.empty:
-        with st.spinner("Generating strategic read..."):
-            st.session_state.ext_synthesis = synthesize_external_landscape(
-                trials_df)
-
-    if st.session_state.ext_synthesis:
-        lines = st.session_state.ext_synthesis.strip().split("\n\n")
-        st.markdown("""
-        <div class="card" style="border-left:2px solid #3ea8cf;
-                                  margin-bottom:8px;">
-            <div style="font-size:10px; color:#3ea8cf; font-weight:700;
-                        letter-spacing:2px; text-transform:uppercase;">
-                STRATEGIC READ · EXTERNAL LANDSCAPE
-            </div>
-        </div>""", unsafe_allow_html=True)
-        for line in lines:
-            if ":" in line:
-                label, _, content = line.partition(":")
-                accent = {
-                    "SIGNAL": "#3ea8cf",
-                    "WHITESPACE": "#3ecf8e",
-                    "PROXIMA EDGE": "#d4a017",
-                    "RECOMMENDATION": "#ffffff",
-                }.get(label.strip(), "#888")
-                st.markdown(f"""
-                <div style="margin-bottom:12px; padding:14px 18px;
-                            background:#050505; border-radius:8px;
-                            border-left:2px solid {accent};">
-                    <div style="font-size:10px; color:{accent};
-                                font-weight:700; letter-spacing:1.5px;
-                                text-transform:uppercase;
-                                margin-bottom:6px;">{label.strip()}</div>
-                    <div style="font-size:14px; color:#cccccc;
-                                line-height:1.8;">{content.strip()}</div>
-                </div>""", unsafe_allow_html=True)
-        if st.button("Regenerate ↺", key="regen_syn1"):
-            st.session_state.ext_synthesis = None
-            st.rerun()
-
-
+    
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 2 — PARTNERSHIP PORTFOLIO
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1224,48 +1175,6 @@ with tab2:
                     margin-bottom:24px;">
             {p["Notes"]}
         </div>""", unsafe_allow_html=True)
-
-    st.markdown("<div class='section-label'>AI Strategic Synthesis</div>",
-                unsafe_allow_html=True)
-
-    if st.session_state.partner_synthesis is None:
-        with st.spinner("Generating strategic read..."):
-            st.session_state.partner_synthesis = \
-                synthesize_partnership_portfolio(partnerships)
-
-    if st.session_state.partner_synthesis:
-        lines2 = st.session_state.partner_synthesis.strip().split("\n\n")
-        st.markdown("""
-        <div class="card" style="border-left:2px solid #3ecf8e;
-                                  margin-bottom:8px;">
-            <div style="font-size:10px; color:#3ecf8e; font-weight:700;
-                        letter-spacing:2px; text-transform:uppercase;">
-                STRATEGIC READ · PARTNERSHIP PORTFOLIO
-            </div>
-        </div>""", unsafe_allow_html=True)
-        for line in lines2:
-            if ":" in line:
-                label, _, content = line.partition(":")
-                accent = {
-                    "PORTFOLIO HEALTH":    "#3ecf8e",
-                    "BIGGEST RISK":        "#cf4f4f",
-                    "BIGGEST OPPORTUNITY": "#3ea8cf",
-                    "RECOMMENDATION":      "#ffffff",
-                }.get(label.strip(), "#888")
-                st.markdown(f"""
-                <div style="margin-bottom:12px; padding:14px 18px;
-                            background:#050505; border-radius:8px;
-                            border-left:2px solid {accent};">
-                    <div style="font-size:10px; color:{accent};
-                                font-weight:700; letter-spacing:1.5px;
-                                text-transform:uppercase;
-                                margin-bottom:6px;">{label.strip()}</div>
-                    <div style="font-size:14px; color:#cccccc;
-                                line-height:1.8;">{content.strip()}</div>
-                </div>""", unsafe_allow_html=True)
-        if st.button("Regenerate ↺", key="regen_syn2"):
-            st.session_state.partner_synthesis = None
-            st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — RESOURCE ALLOCATION
@@ -1528,48 +1437,6 @@ with tab3:
                 </div>
             </div>
         </div>""", unsafe_allow_html=True)
-
-    st.markdown("<div class='section-label'>AI Strategic Synthesis</div>",
-                unsafe_allow_html=True)
-
-    if st.session_state.alloc_synthesis is None:
-        with st.spinner("Generating strategic read..."):
-            st.session_state.alloc_synthesis = \
-                synthesize_resource_allocation(internal_programs)
-
-    if st.session_state.alloc_synthesis:
-        lines3 = st.session_state.alloc_synthesis.strip().split("\n\n")
-        st.markdown("""
-        <div class="card" style="border-left:2px solid #d4a017;
-                                  margin-bottom:8px;">
-            <div style="font-size:10px; color:#d4a017; font-weight:700;
-                        letter-spacing:2px; text-transform:uppercase;">
-                STRATEGIC READ · RESOURCE ALLOCATION
-            </div>
-        </div>""", unsafe_allow_html=True)
-        for line in lines3:
-            if ":" in line:
-                label, _, content = line.partition(":")
-                accent = {
-                    "ALLOCATION READ": "#d4a017",
-                    "UNDERWEIGHTED":   "#3ecf8e",
-                    "OVEREXPOSED":     "#cf4f4f",
-                    "RECOMMENDATION":  "#ffffff",
-                }.get(label.strip(), "#888")
-                st.markdown(f"""
-                <div style="margin-bottom:12px; padding:14px 18px;
-                            background:#050505; border-radius:8px;
-                            border-left:2px solid {accent};">
-                    <div style="font-size:10px; color:{accent};
-                                font-weight:700; letter-spacing:1.5px;
-                                text-transform:uppercase;
-                                margin-bottom:6px;">{label.strip()}</div>
-                    <div style="font-size:14px; color:#cccccc;
-                                line-height:1.8;">{content.strip()}</div>
-                </div>""", unsafe_allow_html=True)
-        if st.button("Regenerate ↺", key="regen_syn3"):
-            st.session_state.alloc_synthesis = None
-            st.rerun()
 
     st.markdown("<div class='section-label'>What I'd Build Next</div>",
                 unsafe_allow_html=True)
