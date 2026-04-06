@@ -1041,7 +1041,7 @@ with tab3:
     st.markdown("""
     <div style="font-size:11px; color:#333; margin-bottom:12px;">
         ⓘ All program data is illustrative — replace with actuals in
-        config.py once you have access to internal systems.
+        config.py once there's access to internal data.
     </div>
     """, unsafe_allow_html=True)
 
