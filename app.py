@@ -940,10 +940,11 @@ with tab2:
 
     from datetime import date
     today = date.today()
+
     def days_until(year, month, day):
         delta = date(year, month, day) - today
         return max(0, delta.days)
-    
+
     partnerships = [
         {
             "Partner": "Johnson & Johnson",
@@ -969,13 +970,13 @@ with tab2:
             "Status": "Active",
             "Deal Value": "Undisclosed",
             "Programs": 2,
-            "Most Advanced": "Lead Optimization",
+            "Most Advanced": "~Lead Optimization",
             "Next Milestone": "Candidate Nomination",
-            "Milestone Date": "Est. Q4 2026",
+            "Milestone Date": "~Q4 2026",
             "Days Until": days_until(2026, 12, 31),
-            "Data Obligations": "Monthly Neo-1 generation reports",
-            "Joint Steering": "Quarterly",
-            "Notes": "BMS has deep internal PROTAC expertise — this partnership is most likely anchored on NeoLink structural data for novel targets where BMS lacks proteome coverage. Milestone timing is estimated — not publicly confirmed.",
+            "Data Obligations": "~Monthly Neo-1 generation reports",
+            "Joint Steering": "~Quarterly",
+            "Notes": "BMS has deep internal PROTAC expertise — this partnership is most likely anchored on NeoLink structural data for novel targets where BMS lacks proteome coverage. Milestone timing and obligations are estimated — not publicly confirmed.",
             "Risk": "Low",
             "Confirmed": False,
         },
@@ -986,13 +987,13 @@ with tab2:
             "Status": "Active",
             "Deal Value": "Undisclosed",
             "Programs": 2,
-            "Most Advanced": "Hit Discovery",
+            "Most Advanced": "~Hit Discovery",
             "Next Milestone": "Hit-to-Lead Completion",
-            "Milestone Date": "Est. Q2 2026",
+            "Milestone Date": "~Q2 2026",
             "Days Until": days_until(2026, 6, 30),
-            "Data Obligations": "Target structural packages on demand",
-            "Joint Steering": "Monthly",
-            "Notes": "Blueprint was acquired by Sanofi — post-acquisition strategic reprioritization is common. Milestone timing is estimated based on typical hit-to-lead timelines. The Q2 estimate is the early warning signal — any delay should trigger a proactive conversation.",
+            "Data Obligations": "~Target structural packages on demand",
+            "Joint Steering": "~Monthly",
+            "Notes": "Blueprint was acquired by Sanofi — post-acquisition strategic reprioritization is common. Milestone timing is estimated based on typical hit-to-lead timelines. Any delay on the Q2 milestone should trigger a proactive conversation.",
             "Risk": "Medium",
             "Confirmed": False,
         },
@@ -1003,12 +1004,12 @@ with tab2:
             "Status": "Active",
             "Deal Value": "$1B+ potential",
             "Programs": 4,
-            "Most Advanced": "Hit Discovery",
+            "Most Advanced": "~Hit Discovery",
             "Next Milestone": "Lead Series Identification",
-            "Milestone Date": "Est. Q3 2026",
+            "Milestone Date": "~Q3 2026",
             "Days Until": days_until(2026, 9, 30),
-            "Data Obligations": "Neo-1 RIPTAC design packages, NeoLink ternary complex data",
-            "Joint Steering": "Monthly",
+            "Data Obligations": "~Neo-1 RIPTAC design packages, NeoLink ternary complex data",
+            "Joint Steering": "~Monthly",
             "Notes": "Deepest technical integration in the portfolio. $1B+ deal value publicly confirmed August 2025. Program stage and milestone timing are estimated. Proxima is Halda's entire computational backbone — highest strategic value partnership.",
             "Risk": "Low",
             "Confirmed": False,
@@ -1020,18 +1021,19 @@ with tab2:
             "Status": "Active",
             "Deal Value": "Undisclosed",
             "Programs": 1,
-            "Most Advanced": "Target Identification",
+            "Most Advanced": "~Target Identification",
             "Next Milestone": "Target Validation Package",
-            "Milestone Date": "Est. Q2 2026",
+            "Milestone Date": "~Q2 2026",
             "Days Until": days_until(2026, 6, 30),
-            "Data Obligations": "NeoLink proteome scan for target class",
-            "Joint Steering": "Quarterly",
+            "Data Obligations": "~NeoLink proteome scan for target class",
+            "Joint Steering": "~Quarterly",
             "Notes": "Partnership publicly confirmed. All program details and milestone timing are estimated based on typical early-stage collaboration timelines. BI has strong internal small molecule capabilities — partnership likely scoping NeoLink for target identification.",
             "Risk": "Low",
             "Confirmed": False,
         },
     ]
 
+    # ── Portfolio metrics ──────────────────────────────────────────────────────
     st.markdown("<div class='section-label'>Portfolio Overview</div>",
                 unsafe_allow_html=True)
 
@@ -1056,6 +1058,7 @@ with tab2:
                 <div class="metric-label">{label}</div>
             </div>""", unsafe_allow_html=True)
 
+    # ── Milestone timeline ─────────────────────────────────────────────────────
     st.markdown("<div class='section-label'>Milestone Timeline</div>",
                 unsafe_allow_html=True)
 
@@ -1065,6 +1068,13 @@ with tab2:
         label  = "Urgent"  if d<=60 else "Soon"    if d<=120 else "Upcoming"
         b_cls  = "badge-red" if d<=60 else \
                  "badge-yellow" if d<=120 else "badge-blue"
+        confirmed_label = (
+            "<span style='font-size:10px; color:#3ecf8e; margin-left:8px;'>"
+            "✓ Confirmed</span>"
+            if p.get("Confirmed")
+            else "<span style='font-size:10px; color:#444; margin-left:8px;'>"
+            "Est.</span>"
+        )
         st.markdown(f"""
         <div class="card" style="border-left:2px solid {color};
                                   padding:16px 20px;">
@@ -1077,21 +1087,28 @@ with tab2:
                     <span style="font-size:13px; color:#666;">
                         {p["Next Milestone"]}
                     </span>
-                    <span style="font-size:10px; color:{'#3ecf8e' if p.get('Confirmed') else '#444'};
-                                 margin-left:8px;">
-                        {'✓ Confirmed' if p.get('Confirmed') else 'Est.'}
-                    </span>
+                    {confirmed_label}
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:13px; color:{color};
                                 font-weight:600;">{p["Milestone Date"]}</div>
-                    <div style="font-size:11px; color:#555;">~{d} days</div>
+                    <div style="font-size:11px; color:#555;">
+                        ~{d} days
+                    </div>
                 </div>
             </div>
         </div>""", unsafe_allow_html=True)
 
+    # ── Partnership cards ──────────────────────────────────────────────────────
     st.markdown("<div class='section-label'>Partnership Detail</div>",
                 unsafe_allow_html=True)
+
+    st.markdown("""
+    <div style="font-size:11px; color:#333; margin-bottom:16px;">
+        ⓘ Fields marked ~ are estimated from public information.
+        Confirmed fields are sourced from public announcements.
+    </div>
+    """, unsafe_allow_html=True)
 
     for p in partnerships:
         risk_cls   = {"High":"badge-red","Medium":"badge-yellow",
@@ -1100,7 +1117,13 @@ with tab2:
                       "Low":"On track"}.get(p["Risk"],"")
         d        = p["Days Until"]
         ms_color = "#cf4f4f" if d<=60 else "#d4a017" if d<=120 else "#3ea8cf"
+        confirmed_str = (
+            "<span style='font-size:10px; color:#3ecf8e;'>✓ Publicly confirmed</span>"
+            if p.get("Confirmed")
+            else "<span style='font-size:10px; color:#444;'>~ Estimated timeline</span>"
+        )
 
+        # ── Card header ────────────────────────────────────────────────────────
         st.markdown(f"""
         <div class="card">
             <div style="display:flex; justify-content:space-between;
@@ -1120,6 +1143,7 @@ with tab2:
         </div>
         """, unsafe_allow_html=True)
 
+        # ── Stats row ──────────────────────────────────────────────────────────
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.markdown(f"""
@@ -1137,7 +1161,7 @@ with tab2:
             st.markdown(f"""
             <div style="padding:0 0 12px 0;">
                 <div class="field-label">PROGRAMS</div>
-                <div class="field-value">{p["Programs"]} active</div>
+                <div class="field-value">~{p["Programs"]} active</div>
             </div>""", unsafe_allow_html=True)
         with col4:
             st.markdown(f"""
@@ -1146,6 +1170,7 @@ with tab2:
                 <div class="field-value">{p["Most Advanced"]}</div>
             </div>""", unsafe_allow_html=True)
 
+        # ── Milestone box ──────────────────────────────────────────────────────
         st.markdown(f"""
         <div style="background:#050505; border:1px solid #151515;
                     border-radius:8px; padding:14px 18px;
@@ -1162,9 +1187,8 @@ with tab2:
                 <div style="text-align:right;">
                     <div style="font-size:14px; color:{ms_color};
                                 font-weight:600;">{p["Milestone Date"]}</div>
-                    <div style="font-size:10px; color:{'#3ecf8e' if p.get('Confirmed') else '#444'};
-                                margin-top:2px;">
-                        {'✓ Publicly confirmed' if p.get('Confirmed') else 'Estimated timeline'}
+                    <div style="font-size:11px; margin-top:2px;">
+                        {confirmed_str}
                     </div>
                     <div style="font-size:11px; color:#555; margin-top:2px;">
                         ~{d} days away
@@ -1174,6 +1198,7 @@ with tab2:
         </div>
         """, unsafe_allow_html=True)
 
+        # ── Obligations row ────────────────────────────────────────────────────
         ob1, ob2 = st.columns(2)
         with ob1:
             st.markdown(f"""
@@ -1188,13 +1213,14 @@ with tab2:
                 <div class="field-value">{p["Joint Steering"]}</div>
             </div>""", unsafe_allow_html=True)
 
+        # ── Notes ──────────────────────────────────────────────────────────────
         st.markdown(f"""
         <div style="font-size:13px; color:#888; line-height:1.8;
                     border-top:1px solid #151515; padding-top:12px;
                     margin-bottom:24px;">
             {p["Notes"]}
         </div>""", unsafe_allow_html=True)
-
+        
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — RESOURCE ALLOCATION
 # ══════════════════════════════════════════════════════════════════════════════
