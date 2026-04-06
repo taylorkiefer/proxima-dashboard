@@ -211,9 +211,9 @@ if "show_trials" not in st.session_state:
 
 # ── Tabs ───────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3 = st.tabs([
-    "  🌐  External Landscape  ",
-    "  🤝  Partnership Portfolio  ",
-    "  📊  Resource Allocation  ",
+    "  External Landscape  ",
+    "  Partnership Portfolio  ",
+    "  Resource Allocation  ",
 ])
 
 # ══════════════════════════════════════════════════════════════════════════════
