@@ -938,6 +938,12 @@ with tab2:
     </div>
     """, unsafe_allow_html=True)
 
+    from datetime import date
+    today = date.today()
+    def days_until(year, month, day):
+        delta = date(year, month, day) - today
+        return max(0, delta.days)
+    
     partnerships = [
         {
             "Partner": "Johnson & Johnson",
@@ -948,12 +954,13 @@ with tab2:
             "Programs": 3,
             "Most Advanced": "Preclinical to IND",
             "Next Milestone": "IND Filing",
-            "Milestone Date": "Q3 2026",
-            "Days Until": 120,
+            "Milestone Date": "2026 (confirmed)",
+            "Days Until": days_until(2026, 9, 30),
             "Data Obligations": "Quarterly structural data packages via NeoLink",
             "Joint Steering": "Bi-monthly",
-            "Notes": "First program on track for IND in 2026 — Proxima's most milestone-critical near-term event. Triggers the first significant milestone payment and serves as the public proof point for platform-to-clinic execution.",
+            "Notes": "J&J publicly confirmed first program on track to enter clinical trials in 2026. This is Proxima's most milestone-critical near-term event — triggers the first significant milestone payment and serves as the public proof point for platform-to-clinic execution.",
             "Risk": "Medium",
+            "Confirmed": True,
         },
         {
             "Partner": "Bristol Myers Squibb",
@@ -964,12 +971,13 @@ with tab2:
             "Programs": 2,
             "Most Advanced": "Lead Optimization",
             "Next Milestone": "Candidate Nomination",
-            "Milestone Date": "Q4 2026",
-            "Days Until": 210,
+            "Milestone Date": "Est. Q4 2026",
+            "Days Until": days_until(2026, 12, 31),
             "Data Obligations": "Monthly Neo-1 generation reports",
             "Joint Steering": "Quarterly",
-            "Notes": "BMS has deep internal PROTAC expertise — this partnership is most likely anchored on NeoLink structural data for novel targets where BMS lacks proteome coverage. Lowest operational urgency in the portfolio right now.",
+            "Notes": "BMS has deep internal PROTAC expertise — this partnership is most likely anchored on NeoLink structural data for novel targets where BMS lacks proteome coverage. Milestone timing is estimated — not publicly confirmed.",
             "Risk": "Low",
+            "Confirmed": False,
         },
         {
             "Partner": "Blueprint Medicines (Sanofi)",
@@ -980,12 +988,13 @@ with tab2:
             "Programs": 2,
             "Most Advanced": "Hit Discovery",
             "Next Milestone": "Hit-to-Lead Completion",
-            "Milestone Date": "Q2 2026",
-            "Days Until": 60,
+            "Milestone Date": "Est. Q2 2026",
+            "Days Until": days_until(2026, 6, 30),
             "Data Obligations": "Target structural packages on demand",
             "Joint Steering": "Monthly",
-            "Notes": "Blueprint was acquired by Sanofi — post-acquisition strategic reprioritization is common and can quietly deprioritize in-flight collaborations. The Q2 milestone in 60 days is the early warning signal. Any delay should trigger a proactive conversation.",
+            "Notes": "Blueprint was acquired by Sanofi — post-acquisition strategic reprioritization is common. Milestone timing is estimated based on typical hit-to-lead timelines. The Q2 estimate is the early warning signal — any delay should trigger a proactive conversation.",
             "Risk": "Medium",
+            "Confirmed": False,
         },
         {
             "Partner": "Halda Therapeutics",
@@ -996,12 +1005,13 @@ with tab2:
             "Programs": 4,
             "Most Advanced": "Hit Discovery",
             "Next Milestone": "Lead Series Identification",
-            "Milestone Date": "Q3 2026",
-            "Days Until": 150,
+            "Milestone Date": "Est. Q3 2026",
+            "Days Until": days_until(2026, 9, 30),
             "Data Obligations": "Neo-1 RIPTAC design packages, NeoLink ternary complex data",
             "Joint Steering": "Monthly",
-            "Notes": "Deepest technical integration in the portfolio. Proxima is Halda's entire computational backbone — their clinical trajectory is directly tied to Neo-1's performance on RIPTAC ternary complexes. Highest strategic value, warrants the closest operational attention.",
+            "Notes": "Deepest technical integration in the portfolio. $1B+ deal value publicly confirmed August 2025. Program stage and milestone timing are estimated. Proxima is Halda's entire computational backbone — highest strategic value partnership.",
             "Risk": "Low",
+            "Confirmed": False,
         },
         {
             "Partner": "Boehringer Ingelheim",
@@ -1012,12 +1022,13 @@ with tab2:
             "Programs": 1,
             "Most Advanced": "Target Identification",
             "Next Milestone": "Target Validation Package",
-            "Milestone Date": "Q2 2026",
-            "Days Until": 45,
+            "Milestone Date": "Est. Q2 2026",
+            "Days Until": days_until(2026, 6, 30),
             "Data Obligations": "NeoLink proteome scan for target class",
             "Joint Steering": "Quarterly",
-            "Notes": "Earliest stage and smallest program but the most urgent deliverable — 45 days. BI has strong internal small molecule capabilities, suggesting this partnership is primarily scoping NeoLink for novel target identification rather than computational design.",
+            "Notes": "Partnership publicly confirmed. All program details and milestone timing are estimated based on typical early-stage collaboration timelines. BI has strong internal small molecule capabilities — partnership likely scoping NeoLink for target identification.",
             "Risk": "Low",
+            "Confirmed": False,
         },
     ]
 
@@ -1065,6 +1076,10 @@ with tab2:
                                  color:#ffffff;">{p["Partner"]}</span>
                     <span style="font-size:13px; color:#666;">
                         {p["Next Milestone"]}
+                    </span>
+                    <span style="font-size:10px; color:{'#3ecf8e' if p.get('Confirmed') else '#444'};
+                                 margin-left:8px;">
+                        {'✓ Confirmed' if p.get('Confirmed') else 'Est.'}
                     </span>
                 </div>
                 <div style="text-align:right;">
@@ -1147,6 +1162,10 @@ with tab2:
                 <div style="text-align:right;">
                     <div style="font-size:14px; color:{ms_color};
                                 font-weight:600;">{p["Milestone Date"]}</div>
+                    <div style="font-size:10px; color:{'#3ecf8e' if p.get('Confirmed') else '#444'};
+                                margin-top:2px;">
+                        {'✓ Publicly confirmed' if p.get('Confirmed') else 'Estimated timeline'}
+                    </div>
                     <div style="font-size:11px; color:#555; margin-top:2px;">
                         ~{d} days away
                     </div>
