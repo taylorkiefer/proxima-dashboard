@@ -243,7 +243,7 @@ with tab1:
         trials_df = fetch_clinical_trials()
         recent_df = fetch_recent_trials(days=365)
 
-    st.cache_data.clear()
+ 
     # ── Live market snapshot ───────────────────────────────────────────────────
     st.markdown("<div class='section-label'>Live Market Snapshot</div>",
                 unsafe_allow_html=True)
