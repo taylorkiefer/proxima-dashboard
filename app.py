@@ -291,6 +291,7 @@ with tab1:
     """, unsafe_allow_html=True)
 
     scorecard_df = build_whitespace_scorecard(trials_df)
+    st.write(scorecard_df[["Target Class","Clinical Trials","Validation Score","Whitespace Score","NeoLink Score","Opportunity Score"]])
 
     # Priority legend
     leg1, leg2, leg3, leg4 = st.columns(4)
