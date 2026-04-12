@@ -2,11 +2,13 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta
 import streamlit as st
+from config import WHITESPACE_TARGETS
 
 # ── ClinicalTrials.gov API ─────────────────────────────────────────────────────
 
 CLINICALTRIALS_BASE = "https://clinicaltrials.gov/api/v2/studies"
 
+# Edit these to change what modalities are tracked
 PROMOD_SEARCH_TERMS = [
     "molecular glue",
     "PROTAC",
@@ -43,12 +45,23 @@ STATUS_MAP = {
 
 @st.cache_data(ttl=3600)
 def fetch_clinical_trials():
+    """
+    Pulls ProMod-related clinical trials from ClinicalTrials.gov API v2.
+    Returns a cleaned pandas DataFrame.
+    """
     all_studies = []
     for term in PROMOD_SEARCH_TERMS:
         params = {
             "query.term": term,
-            "filter.overallStatus": "RECRUITING,ACTIVE_NOT_RECRUITING,NOT_YET_RECRUITING,ENROLLING_BY_INVITATION",
-            "fields": "NCTId,BriefTitle,OverallStatus,Phase,StartDate,PrimaryCompletionDate,LeadSponsorName,Condition,InterventionName,BriefSummary",
+            "filter.overallStatus": (
+                "RECRUITING,ACTIVE_NOT_RECRUITING,"
+                "NOT_YET_RECRUITING,ENROLLING_BY_INVITATION"
+            ),
+            "fields": (
+                "NCTId,BriefTitle,OverallStatus,Phase,StartDate,"
+                "PrimaryCompletionDate,LeadSponsorName,Condition,"
+                "InterventionName,BriefSummary"
+            ),
             "pageSize": 100,
             "format": "json",
         }
@@ -56,19 +69,21 @@ def fetch_clinical_trials():
             response = requests.get(
                 CLINICALTRIALS_BASE, params=params, timeout=10)
             if response.status_code == 200:
-                data = response.json()
-                all_studies.extend(data.get("studies", []))
+                all_studies.extend(
+                    response.json().get("studies", []))
         except Exception:
             continue
 
     if not all_studies:
         return pd.DataFrame()
 
+    # Deduplicate by NCT ID
     seen = set()
     unique_studies = []
     for s in all_studies:
-        nct_id = s.get("protocolSection", {}).get(
-            "identificationModule", {}).get("nctId", "")
+        nct_id = (s.get("protocolSection", {})
+                   .get("identificationModule", {})
+                   .get("nctId", ""))
         if nct_id and nct_id not in seen:
             seen.add(nct_id)
             unique_studies.append(s)
@@ -94,12 +109,13 @@ def fetch_clinical_trials():
         condition_str = ", ".join(conditions[:2]) if conditions else "—"
 
         start      = status_mod.get("startDateStruct", {}).get("date", "—")
-        completion = status_mod.get(
-            "primaryCompletionDateStruct", {}).get("date", "—")
-        sponsor    = sponsor_mod.get("leadSponsor", {}).get("name", "—")
+        completion = (status_mod.get("primaryCompletionDateStruct", {})
+                               .get("date", "—"))
+        sponsor    = (sponsor_mod.get("leadSponsor", {})
+                                 .get("name", "—"))
 
-        title   = id_mod.get("briefTitle", "—")
-        summary = desc_mod.get("briefSummary", "")
+        title    = id_mod.get("briefTitle", "—")
+        summary  = desc_mod.get("briefSummary", "")
         modality = infer_modality(title + " " + summary)
 
         rows.append({
@@ -120,24 +136,32 @@ def fetch_clinical_trials():
         "Phase 1/2": 3, "Phase 1": 4, "Early Phase 1": 5, "N/A": 6
     }
     df["_phase_sort"] = df["Phase"].map(phase_order).fillna(99)
-    df = df.sort_values("_phase_sort").drop(
-        columns=["_phase_sort"]).reset_index(drop=True)
+    df = (df.sort_values("_phase_sort")
+            .drop(columns=["_phase_sort"])
+            .reset_index(drop=True))
     return df
 
 
 def infer_modality(text):
+    """Infer ProMod modality from free text."""
     t = text.lower()
-    if "riptac" in t:                              return "RIPTAC"
-    elif "protac" in t or "bifunctional" in t:     return "PROTAC"
-    elif "molecular glue" in t:                    return "Molecular Glue"
+    if "riptac" in t:
+        return "RIPTAC"
+    elif "protac" in t or "bifunctional" in t:
+        return "PROTAC"
+    elif "molecular glue" in t:
+        return "Molecular Glue"
     elif "protein degrad" in t or "targeted degrad" in t:
-                                                   return "Protein Degrader"
-    elif "proximity" in t:                         return "Proximity Modulator"
-    else:                                          return "ProMod (other)"
+        return "Protein Degrader"
+    elif "proximity" in t:
+        return "Proximity Modulator"
+    else:
+        return "ProMod (other)"
 
 
 @st.cache_data(ttl=3600)
 def fetch_recent_trials(days=365):
+    """Trials started in the last N days."""
     df = fetch_clinical_trials()
     if df.empty:
         return df
@@ -157,114 +181,54 @@ def fetch_recent_trials(days=365):
     return recent
 
 
-@st.cache_data(ttl=3600)
 def build_whitespace_scorecard(trials_df: pd.DataFrame) -> pd.DataFrame:
-    protac_count = len(trials_df[
-        trials_df["Modality"] == "PROTAC"
-    ]) if not trials_df.empty else 0
-    glue_count = len(trials_df[
-        trials_df["Modality"] == "Molecular Glue"
-    ]) if not trials_df.empty else 0
-    riptac_count = len(trials_df[
-        trials_df["Modality"] == "RIPTAC"
-    ]) if not trials_df.empty else 0
+    """
+    Builds the strategic whitespace scorecard.
+    Target class data comes from config.py — edit there, not here.
+    Clinical trial counts are pulled live from trials_df.
+    """
 
-    target_classes = [
-        {
-            "Target Class":    "E3 Ligase / Molecular Glue",
-            "Modality":        "Molecular Glue",
-            "Clinical Trials": glue_count,
-            "Competitors":     4,
-            "Proxima Program": "PRX-001 (Lead Opt)",
-            "Proxima Partner": "J&J",
-            "NeoLink Coverage":"High",
-            "Indication":      "Oncology",
-            "Whitespace Notes":"Crowded in oncology. Immunology and CNS glue applications remain largely unexplored. Neo-1 glue design speed is the key differentiator against Monte Rosa and Kymera.",
-        },
-        {
-            "Target Class":    "BRD / Transcription Factor",
-            "Modality":        "PROTAC",
-            "Clinical Trials": protac_count,
-            "Competitors":     3,
-            "Proxima Program": "PRX-002 (Hit Discovery)",
-            "Proxima Partner": "BMS",
-            "NeoLink Coverage":"High",
-            "Indication":      "Oncology",
-            "Whitespace Notes":"BRD4 is crowded but novel BRD family members remain accessible via NeoLink proteome coverage. Strong structural data advantage where competitors lack coverage.",
-        },
-        {
-            "Target Class":    "Kinase / Scaffolding Protein",
-            "Modality":        "Molecular Glue",
-            "Clinical Trials": 2,
-            "Competitors":     1,
-            "Proxima Program": "PRX-003 (Target Validation)",
-            "Proxima Partner": "None",
-            "NeoLink Coverage":"Medium",
-            "Indication":      "Immunology",
-            "Whitespace Notes":"Significant whitespace. Low competition, strong biological rationale. Only Proxima internal immunology program — underdeveloped relative to the opportunity size.",
-        },
-        {
-            "Target Class":    "RIPTAC Targets",
-            "Modality":        "RIPTAC",
-            "Clinical Trials": riptac_count,
-            "Competitors":     1,
-            "Proxima Program": "HALDA-PRX-01/02",
-            "Proxima Partner": "Halda",
-            "NeoLink Coverage":"High",
-            "Indication":      "Oncology",
-            "Whitespace Notes":"Wide open. Minimal competition. Neo-1 ternary complex prediction strength is uniquely suited to RIPTAC design. First mover advantage available if Halda programs accelerate.",
-        },
-        {
-            "Target Class":    "Immune Modulators",
-            "Modality":        "PROTAC",
-            "Clinical Trials": 3,
-            "Competitors":     2,
-            "Proxima Program": "BMS-PRX-01",
-            "Proxima Partner": "BMS",
-            "NeoLink Coverage":"Medium",
-            "Indication":      "Immunology",
-            "Whitespace Notes":"Emerging area. BMS partnership provides a beachhead. Significant room for additional partners in autoimmune and inflammatory indications.",
-        },
-        {
-            "Target Class":    "CNS Targets",
-            "Modality":        "Molecular Glue / PROTAC",
-            "Clinical Trials": 1,
-            "Competitors":     0,
-            "Proxima Program": "None",
-            "Proxima Partner": "None",
-            "NeoLink Coverage":"Medium",
-            "Indication":      "Neurodegeneration",
-            "Whitespace Notes":"Significant unmet need. Almost no ProMod competition. BBB penetration is a challenge but not insurmountable. High-value partnership opportunity with no current Proxima presence.",
-        },
-        {
-            "Target Class":    "Cardiovascular Targets",
-            "Modality":        "PROTAC",
-            "Clinical Trials": 2,
-            "Competitors":     1,
-            "Proxima Program": "None",
-            "Proxima Partner": "None",
-            "NeoLink Coverage":"Medium",
-            "Indication":      "Cardiovascular",
-            "Whitespace Notes":"Underexplored. Large unmet need. NeoLink coverage growing. Potential new partnership vertical with no current Proxima presence.",
-        },
-        {
-            "Target Class":    "Viral / Infectious Disease",
-            "Modality":        "Molecular Glue",
-            "Clinical Trials": 1,
-            "Competitors":     0,
-            "Proxima Program": "None",
-            "Proxima Partner": "None",
-            "NeoLink Coverage":"Low",
-            "Indication":      "Infectious Disease",
-            "Whitespace Notes":"Very early stage. Limited NeoLink coverage currently. Low near-term priority but worth monitoring as the platform matures.",
-        },
-    ]
+    # Count trials by modality from live data
+    modality_counts = {}
+    if not trials_df.empty:
+        modality_counts = trials_df["Modality"].value_counts().to_dict()
 
-    df = pd.DataFrame(target_classes)
+    # For target classes where the modality label doesn't cleanly map
+    # to a single ClinicalTrials modality, use combined counts
+    def get_trial_count(target):
+        modality = target["Modality"]
+        if modality == "Molecular Glue":
+            # Count both Molecular Glue and ProMod (other) as proxies
+            return (
+                modality_counts.get("Molecular Glue", 0) +
+                modality_counts.get("ProMod (other)", 0)
+            )
+        elif modality == "PROTAC":
+            return modality_counts.get("PROTAC", 0)
+        elif modality == "RIPTAC":
+            return modality_counts.get("RIPTAC", 0)
+        elif modality == "Molecular Glue / PROTAC":
+            return (
+                modality_counts.get("Molecular Glue", 0) +
+                modality_counts.get("PROTAC", 0) +
+                modality_counts.get("ProMod (other)", 0)
+            )
+        elif modality == "Protein Degrader":
+            return modality_counts.get("Protein Degrader", 0)
+        else:
+            return modality_counts.get("ProMod (other)", 0)
 
-    def score_validation(t):
-        if t >= 8:   return 3
-        elif t >= 3: return 2
+    rows = []
+    for t in WHITESPACE_TARGETS:
+        trial_count = get_trial_count(t)
+        rows.append({**t, "Clinical Trials": trial_count})
+
+    df = pd.DataFrame(rows)
+
+    # Scoring functions
+    def score_validation(n):
+        if n >= 8:   return 3
+        elif n >= 3: return 2
         else:        return 1
 
     def score_crowding(c):
